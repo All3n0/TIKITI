@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-blue-900 text-white pt-12 pb-6">
+    <footer className=" text-white pt-12 pb-6"style={{ backgroundColor: '#062d2d' }}>
       {/* Top section */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left px-4">
         {/* Column 1: Brand */}
@@ -54,10 +54,13 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom line */}
-      <div className="mt-10 border-t border-gray-400 pt-4 text-center text-sm text-blue-100">
-        © 2025 TIKITI. All rights reserved.
-      </div>
+      <div className="mt-10 pt-4">
+  <div className="border-t border-gray-400 max-w-xs mx-auto mb-2" />
+  <p className="text-center text-sm text-blue-100">
+    © 2025 TIKITI. All rights reserved.
+  </p>
+</div>
+
     </footer>
   );
 }
