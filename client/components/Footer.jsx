@@ -1,49 +1,63 @@
+'use client';
+
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+} from 'lucide-react';
+import Link from 'next/link';
+
 export default function Footer() {
   return (
-    <footer className="bg-gold-900 text-white py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <h3 className="text-2xl font-bold mb-4">EventHub</h3>
-            <p className="text-gold-200">
-              Your premier destination for discovering and booking amazing events worldwide.
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="font-bold text-lg mb-4">Events</h4>
-            <ul className="space-y-2 text-gold-200">
-              <li><a href="#" className="hover:text-white">Browse Events</a></li>
-              <li><a href="#" className="hover:text-white">Create Event</a></li>
-              <li><a href="#" className="hover:text-white">Event Categories</a></li>
-              <li><a href="#" className="hover:text-white">Popular Venues</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-bold text-lg mb-4">Support</h4>
-            <ul className="space-y-2 text-gold-200">
-              <li><a href="#" className="hover:text-white">Help Center</a></li>
-              <li><a href="#" className="hover:text-white">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-bold text-lg mb-4">Connect</h4>
-            <div className="flex gap-4 text-gold-200">
-              <a href="#" className="hover:text-white">Twitter</a>
-              <a href="#" className="hover:text-white">Facebook</a>
-              <a href="#" className="hover:text-white">Instagram</a>
-            </div>
-          </div>
+    <footer className="bg-blue-900 text-white pt-12 pb-6">
+      {/* Top section */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left px-4">
+        {/* Column 1: Brand */}
+        <div>
+          <h2 className="text-2xl font-bold mb-2">TIKITI</h2>
+          <p className="text-sm text-blue-100">
+            Your premium destination for discovering and booking amazing events worldwide.
+          </p>
         </div>
-        
-        <div className="border-t border-gold-700 pt-8 text-center text-gold-300">
-          <p>© {new Date().getFullYear()} EventHub. All rights reserved.</p>
+
+        {/* Column 2: Events */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Events</h3>
+          <ul className="space-y-1 text-sm text-blue-100">
+            <li><Link href="/events">Browse Events</Link></li>
+            <li><Link href="/categories">Event Categories</Link></li>
+            <li><Link href="/venues">Popular Venues</Link></li>
+          </ul>
+        </div>
+
+        {/* Column 3: Support */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Support</h3>
+          <ul className="space-y-1 text-sm text-blue-100">
+            <li><Link href="/help">Help Center</Link></li>
+            <li><Link href="/contact">Contact Us</Link></li>
+            <li><Link href="/terms">Terms of Service</Link></li>
+            <li><Link href="/privacy">Privacy Policy</Link></li>
+          </ul>
+        </div>
+
+        {/* Column 4: Connect */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Connect</h3>
+          <div className="flex justify-center md:justify-start gap-4 mt-2">
+            <Link href="#" className="hover:text-blue-300"><Facebook className="w-5 h-5" /></Link>
+            <Link href="#" className="hover:text-blue-300"><Twitter className="w-5 h-5" /></Link>
+            <Link href="#" className="hover:text-blue-300"><Instagram className="w-5 h-5" /></Link>
+            <Link href="#" className="hover:text-blue-300"><Linkedin className="w-5 h-5" /></Link>
+          </div>
         </div>
       </div>
+
+      {/* Bottom line */}
+      <div className="mt-10 border-t border-gray-400 pt-4 text-center text-sm text-blue-100">
+        © 2025 TIKITI. All rights reserved.
+      </div>
     </footer>
-  )
+  );
 }
