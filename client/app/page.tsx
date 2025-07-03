@@ -37,7 +37,7 @@ async function getFeaturedEvents() {
 }
 
 async function getFeaturedOrganizers() {
-  const res = await fetch('http://localhost:5557/organizers/featured');
+  const res = await fetch('http://localhost:5557/organizers/featured/summary');
   if (!res.ok) {
     throw new Error('Failed to fetch featured organizers');
   }
