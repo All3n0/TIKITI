@@ -12,19 +12,42 @@ export default function RegisterPage() {
     password: ''
   });
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
+    
     try {
       const response = await axios.post('http://localhost:5557/auth/register', formData, {
-        withCredentials: true
+        withCredentials: true,  // Important for cookies
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
+      
+      // Check for successful registration
       if (response.data.message === 'Registered') {
-        router.push('/');
+        // Redirect to profile page
+        router.push('/profile');
+      } else {
+        setError('Registration failed. Please try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      // Handle different error cases
+      if (err.response) {
+        // Server responded with an error status
+        setError(err.response.data.error || 'Registration failed');
+      } else if (err.request) {
+        // Request was made but no response received
+        setError('Network error. Please check your connection.');
+      } else {
+        // Something else happened
+        setError('An unexpected error occurred.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
