@@ -1,37 +1,67 @@
 'use client';
+
 import { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, Calendar, Clock, MapPin, Users, Ticket } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, MapPin, Users, Ticket } from 'lucide-react';
 import axios from 'axios';
 import EventModal from '../components/EventModal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const organiserId = 1; // Replace with dynamic user data if available
+  const [organiserId, setOrganiserId] = useState(null);
+  const router = useRouter();
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (id) => {
     try {
-      const res = await axios.get(`http://localhost:5557/organiser/${organiserId}/events`);
-      // Fetch venue details for each event
-      const eventsWithVenues = await Promise.all(
-        res.data.map(async event => {
-          if (event.venue_id) {
-            const venueRes = await axios.get(`http://localhost:5557/venues/${event.venue_id}`);
-            return { ...event, venue: venueRes.data };
-          }
-          return event;
-        })
-      );
-      setEvents(eventsWithVenues);
+      const res = await axios.get(`http://localhost:5557/organiser/${id}/events`);
+      setEvents(res.data);
     } catch (err) {
       console.error('Error fetching events:', err);
-    } finally {
-      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const res = await fetch('http://localhost:5557/auth/session', {
+          credentials: 'include',
+        });
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch session');
+        }
+        
+        const sessionData = await res.json();
+        
+        // Check the actual response structure
+        console.log('Session data:', sessionData);
+        
+        // Handle both possible response structures
+        const user = sessionData.user || sessionData;
+        
+        if (!user || !user.id || user.role !== 'organizer') {
+          router.push('/login');
+          return;
+        }
+
+        setOrganiserId(user.id);
+        await fetchEvents(user.id);
+      } catch (err) {
+        console.error('Session check failed:', err);
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [router]);
+
+  // ... rest of your component code remains the same ...
 
   const openModal = () => {
     setEditingEvent(null);
@@ -48,21 +78,22 @@ export default function EventsPage() {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = confirm('Are you sure you want to delete this event?');
-    if (!confirmDelete) return;
-
+    if (!confirm('Are you sure you want to delete this event?')) return;
     try {
       await axios.delete(`http://localhost:5557/events/${id}`);
-      fetchEvents(); // refresh list
+      await fetchEvents(organiserId);
     } catch (err) {
-      console.error('Delete failed', err);
-      alert('Something went wrong while deleting.');
+      console.error('Delete failed:', err);
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
+      </div>
+    );
+  }
 
   return (
     <section className="p-6">
@@ -77,11 +108,7 @@ export default function EventsPage() {
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
-        </div>
-      ) : events.length === 0 ? (
+      {events.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No events yet.</p>
           <button
@@ -108,10 +135,10 @@ export default function EventsPage() {
                   {event.category || 'Event'}
                 </div>
               </div>
-              
+
               <div className="p-4 flex-1 flex flex-col">
                 <h2 className="font-bold text-lg text-gray-800 mb-2">{event.title}</h2>
-                
+
                 <div className="space-y-3 mb-4">
                   <div className="flex items-start gap-2">
                     <Calendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -121,10 +148,11 @@ export default function EventsPage() {
                         {new Date(event.start_datetime).toLocaleDateString('en-US', {
                           weekday: 'short',
                           month: 'short',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                         <br />
-                        {new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{' '}
+                        {new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                        -{' '}
                         {new Date(event.end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -161,7 +189,7 @@ export default function EventsPage() {
                     <Ticket className="w-4 h-4" />
                     View Event
                   </Link>
-                  
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => openEditModal(event)}
@@ -189,7 +217,7 @@ export default function EventsPage() {
         open={showModal}
         onClose={closeModal}
         editingEvent={editingEvent}
-        onSuccess={fetchEvents}
+        onSuccess={() => fetchEvents(organiserId)}
         organiserId={organiserId}
       />
     </section>

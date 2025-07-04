@@ -16,14 +16,14 @@ import {
 import React, { useState } from 'react';
 
 const navLinks = [
-  { name: 'Dashboard', href: '/organiser/dashboard', icon: Home },
-  { name: 'Events', href: '/organiser/events', icon: CalendarDays },
-  { name: 'Sponsors', href: '/organiser/sponsors', icon: Users },
-  { name: 'Venues', href: '/organiser/venues', icon: Store },
-  { name: 'Tickets', href: '/organiser/tickets', icon: Ticket },
-  { name: 'Orders', href: '/organiser/orders', icon: FileText },
-  { name: 'Refunds', href: '/organiser/refunds', icon: FileText },
-  { name: 'Profile', href: '/organiser/profile', icon: Settings },
+  { name: 'Dashboard', href: '/organizer/dashboard', icon: Home },
+  { name: 'Events', href: '/organizer/events', icon: CalendarDays },
+  { name: 'Sponsors', href: '/organizer/sponsors', icon: Users },
+  { name: 'Venues', href: '/organizer/venues', icon: Store },
+  { name: 'Tickets', href: '/organizer/tickets', icon: Ticket },
+  { name: 'Orders', href: '/organizer/orders', icon: FileText },
+  { name: 'Refunds', href: '/organizer/refunds', icon: FileText },
+  { name: 'Profile', href: '/organizer/profile', icon: Settings },
 ];
 
 export default function OrganiserLayout({ children }: { children: React.ReactNode }) {
