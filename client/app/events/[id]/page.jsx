@@ -2,14 +2,18 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CalendarDays, MapPin, Star, Users } from 'lucide-react';
+import TicketView from '../../../components/TicketView';
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [sessionUserId, setSessionUserId] = useState(1); // Replace with session logic
+  const [sessionUser, setSessionUser] = useState(null); // ✅ Now holds full user object
+  const [ticketData, setTicketData] = useState(null);
+  const [orderInfo, setOrderInfo] = useState(null);
 
+  // ✅ Fetch event details
   useEffect(() => {
     if (!id) return;
     fetch(`http://localhost:5557/events/${id}/details`)
@@ -24,6 +28,25 @@ export default function EventDetailPage() {
       });
   }, [id]);
 
+  // ✅ Fetch session on mount
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const res = await fetch('http://localhost:5557/auth/session', {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (data?.id) {
+          setSessionUser(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch session:', err);
+      }
+    };
+
+    fetchSession();
+  }, []);
+
   const updateQuantity = (ticketId, change) => {
     setQuantities(prev => ({
       ...prev,
@@ -32,24 +55,42 @@ export default function EventDetailPage() {
   };
 
   const handlePayment = async () => {
+    if (!sessionUser) return alert('Please log in to continue.');
+
     try {
       const response = await fetch('http://localhost:5557/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          user_id: sessionUserId,
+          user_id: sessionUser.id,
           quantities,
-          attendee_name: 'John Doe',
-          attendee_email: 'john@example.com',
-          billing_address: '123 Example Lane',
+          attendee_name: sessionUser.username,
+          attendee_email: sessionUser.email,
+          billing_address: 'Nairobi, KE',
           payment_method: 'manual',
         }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        alert(`Payment successful! Order ID: ${data.order_id}`);
+        const firstTicket = data.tickets[0];
+        const ticket = {
+          attendee_name: firstTicket.attendee_name,
+          attendee_email: firstTicket.attendee_email,
+          ticket_type: firstTicket.ticket_type,
+          price: firstTicket.price,
+          serial: firstTicket.unique_code,
+          qr_code_path: firstTicket.qr_code_path,
+        };
+        setTicketData(ticket);
+        setOrderInfo({ order_id: data.order_id, total: data.total });
+
+        setQuantities(prev => {
+          const reset = { ...prev };
+          Object.keys(reset).forEach(k => (reset[k] = 0));
+          return reset;
+        });
         setShowModal(false);
       } else {
         alert(data.error || 'Something went wrong.');
@@ -68,6 +109,7 @@ export default function EventDetailPage() {
   return (
     <div className="bg-white text-gray-800 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Event Info */}
         <div className="lg:col-span-2">
           <img src={event.image || '/placeholder.jpg'} alt={event.title} className="w-full h-[350px] object-cover rounded-xl" />
           <h1 className="text-3xl font-bold mt-6">{event.title}</h1>
@@ -97,6 +139,8 @@ export default function EventDetailPage() {
             <p className="leading-relaxed text-gray-700">{event.description}</p>
           </div>
         </div>
+
+        {/* Ticket Selection */}
         <div>
           <h2 className="font-semibold text-xl mb-6">Select Tickets</h2>
           {event.ticket_types.map(ticket => (
@@ -122,6 +166,7 @@ export default function EventDetailPage() {
         </div>
       </div>
 
+      {/* Checkout Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 backdrop-blur bg-black/30 flex justify-center items-center px-4">
           <div className="bg-white rounded-xl w-full max-w-2xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
@@ -157,6 +202,11 @@ export default function EventDetailPage() {
             <button onClick={handlePayment} className="mt-6 w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-semibold transition">Make Payment</button>
           </div>
         </div>
+      )}
+
+      {/* Ticket View */}
+      {ticketData && (
+        <TicketView event={event} ticketData={ticketData} order={orderInfo} />
       )}
     </div>
   );
