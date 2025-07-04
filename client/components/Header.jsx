@@ -8,24 +8,27 @@ import axios from 'axios';
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     const checkLogin = async () => {
       try {
         const res = await axios.get('http://localhost:5557/auth/session', {
-          withCredentials: true
+          withCredentials: true,
         });
-        if (res.data?.user) {
+
+        if (res.data && res.data.id) {
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
         }
       } catch (err) {
+        console.error('Session check failed:', err);
         setIsLoggedIn(false);
       }
     };
 
     checkLogin();
   }, []);
+
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
@@ -36,11 +39,11 @@ export default function Header() {
 
         {/* User Icon */}
         <Link
-          href={isLoggedIn ? '/profile' : '/register'}
-          className="text-gray-700 hover:text-amber-600 transition-colors"
-        >
-          <User className="w-6 h-6" />
-        </Link>
+      href={isLoggedIn ? '/profile' : '/register'}
+      className="text-gray-700 hover:text-amber-600 transition-colors"
+    >
+      <User className="w-6 h-6" />
+    </Link>
       </div>
     </header>
   );

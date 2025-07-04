@@ -15,8 +15,9 @@ export default function ProfilePage() {
         const res = await axios.get('http://localhost:5557/auth/session', {
           withCredentials: true,
         });
-        if (res.data?.user) {
-          setUser(res.data.user);
+        if (res.data) {
+          setUser(res.data);
+          console.log(res.data);
         }
       } catch (err) {
         console.error('Error fetching user', err);
@@ -62,6 +63,35 @@ export default function ProfilePage() {
               <p className="text-gray-600">{user.email}</p>
             </div>
           </div>
+<div className="flex flex-col gap-3 items-end">
+  {user.role === 'user' && (
+    <button
+      onClick={async () => {
+        try {
+          const res = await axios.post('http://localhost:5557/auth/switch-to-organizer', {}, {
+            withCredentials: true
+          });
+          router.push('/login'); // Re-login to route correctly
+        } catch (err) {
+          console.error('Switch failed:', err);
+        }
+      }}
+      className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg"
+    >
+      Switch to Organizer
+    </button>
+  )}
+
+  {user.role === 'organizer' && (
+    <button
+      onClick={() => router.push('/organizer/dashboard')}
+      className="bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg"
+    >
+      View Organizer Panel
+    </button>
+  )}
+</div>
+
 
           {/* Logout Button */}
           <button

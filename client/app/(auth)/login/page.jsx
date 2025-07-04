@@ -19,9 +19,19 @@ export default function LoginPage() {
       const response = await axios.post('http://localhost:5557/auth/login', formData, {
         withCredentials: true
       });
-      if (response.data.message === 'Logged in') {
-        router.push('/');
-      }
+     if (response.data.message === 'Logged in') {
+  // Fetch session
+  const sessionRes = await axios.get('http://localhost:5557/auth/session', {
+    withCredentials: true
+  });
+
+  const { user } = sessionRes.data;
+  if (user?.role === 'organizer' && user?.organizer_id) {
+    router.push(`/organizer/${user.organizer_id}/dashboard`);
+  } else {
+    router.push('/profile');
+  }
+}
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }
