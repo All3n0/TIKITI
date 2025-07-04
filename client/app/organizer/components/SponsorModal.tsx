@@ -51,7 +51,7 @@ export default function SponsorModal({ open, onClose, onSuccess, editing }: {
   if (!open) return null;
 
   return (
-   <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+   <div className="fixed inset-0 flex items-center backdrop-blur justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center border-b border-gray-200 p-4 sticky top-0 bg-white z-10">
           <h2 className="text-xl font-bold text-gray-800">
