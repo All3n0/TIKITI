@@ -147,15 +147,18 @@ export default function EventsPage() {
                     </div>
                   )}
 
-                  <div className="flex items-start gap-2">
-                    <Users className="w-5 h-5 text-amber-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Capacity</p>
-                      <p className="text-sm text-gray-600">
-                        {event.capacity?.toLocaleString() || 'Unlimited'}
-                      </p>
-                    </div>
-                  </div>
+                 <div className="flex items-start gap-2">
+  <Users className="w-5 h-5 text-amber-600 mt-0.5" />
+  <div>
+    <p className="text-sm font-medium text-gray-700">Capacity</p>
+    <p className="text-sm text-gray-600">
+      {event.venue?.capacity !== undefined && event.venue?.capacity !== null
+        ? event.venue.capacity.toLocaleString()
+        : 'Unlimited'}
+    </p>
+  </div>
+</div>
+
                 </div>
 
                 <div className="mt-auto pt-4 border-t flex justify-between">
