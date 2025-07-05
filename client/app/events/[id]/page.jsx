@@ -84,7 +84,7 @@ export default function EventDetailPage() {
           qr_code_path: firstTicket.qr_code_path,
         };
         setTicketData(ticket);
-        setOrderInfo({ order_id: data.order_id, total: data.total });
+        setOrderInfo({ order_id: data.order_id, total: data.total,transaction_reference: data.transaction_reference });
 
         setQuantities(prev => {
           const reset = { ...prev };
@@ -105,6 +105,7 @@ export default function EventDetailPage() {
 
   const formatDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const formatTime = iso => new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
 
   return (
     <div className="bg-white text-gray-800 min-h-screen">
@@ -162,7 +163,17 @@ export default function EventDetailPage() {
           <div className="mt-6 border-t pt-4 font-semibold">
             Total: KSh {Object.entries(quantities).reduce((sum, [id, qty]) => sum + qty * event.ticket_types.find(ticket => ticket.id === parseInt(id)).price, 0).toFixed(2)}
           </div>
-          <button onClick={() => setShowModal(true)} className="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-semibold transition">Checkout</button>
+<button
+  onClick={() => setShowModal(true)}
+  disabled={totalTickets === 0}
+  className={`mt-4 w-full py-3 rounded-xl font-semibold transition ${
+    totalTickets === 0
+      ? 'bg-amber-200 text-gray-500 cursor-not-allowed'
+      : 'bg-amber-600 hover:bg-amber-700 text-white'
+  }`}
+>
+  Checkout
+</button>
         </div>
       </div>
 
@@ -206,7 +217,7 @@ export default function EventDetailPage() {
 
       {/* Ticket View */}
       {ticketData && (
-        <TicketView event={event} ticketData={ticketData} order={orderInfo} />
+        <TicketView event={event} ticketData={ticketData} order={orderInfo} onClose={() => setTicketData(null)}/>
       )}
     </div>
   );
