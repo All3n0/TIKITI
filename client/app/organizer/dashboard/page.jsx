@@ -3,11 +3,47 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserCircle, BarChart3, CalendarPlus, UserCog } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { CalendarDays, TrendingUp, FolderOpen } from 'lucide-react';
+import { Users, CreditCard, Star, Eye, Image as ImageIcon } from 'lucide-react';
 
 export default function OrganizerDashboard() {
   const [data, setData] = useState(null);
   const router = useRouter();
+  const tabs = ['My Events', 'Upcoming', 'Analytics'];
 
+const [activeTab, setActiveTab] = useState('My Events');
+const [events, setEvents] = useState([]);
+const [upcoming, setUpcoming] = useState([]);
+const [analytics, setAnalytics] = useState(null);
+useEffect(() => {
+  const fetchAllTabs = async () => {
+    try {
+      const res = await fetch('http://localhost:5557/auth/session', { credentials: 'include' });
+      const user = await res.json();
+      if (!user || user.role !== 'organizer') {
+        router.push('/login');
+        return;
+      }
+
+      // Events
+      const eventsRes = await fetch(`http://localhost:5557/organiser/${user.id}/events`);
+      setEvents(await eventsRes.json());
+
+      // Upcoming
+      const upcomingRes = await fetch(`http://localhost:5557/organiser/${user.id}/upcoming`);
+      setUpcoming(await upcomingRes.json());
+
+      // Analytics
+      const analyticsRes = await fetch(`http://localhost:5557/organiser/${user.id}/analytics`);
+      setAnalytics(await analyticsRes.json());
+    } catch (err) {
+      console.error('Error loading tabs', err);
+    }
+  };
+
+  fetchAllTabs();
+}, []);
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -79,10 +115,146 @@ export default function OrganizerDashboard() {
         </button>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">My Events</h2>
-        <div className="text-gray-500 text-sm italic">Event cards with CRUD coming next...</div>
+<div className="mt-8">
+  {/* Tabs */}
+  <div className="flex border rounded-md overflow-hidden mb-6">
+    {tabs.map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setActiveTab(tab)}
+        className={`w-full py-2 text-sm font-medium ${
+          activeTab === tab
+            ? 'bg-white text-amber-600 border-b-2 border-amber-600'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        }`}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+
+  {/* My Events */}
+  {activeTab === 'My Events' && (
+    <div className="space-y-4">
+      {events.length === 0 ? (
+        <p className="text-gray-500">No events created yet.</p>
+      ) : (
+        events.map((ev) => (
+          <div
+            key={ev.id}
+            className="flex gap-4 items-center bg-white p-4 rounded-md border shadow-sm"
+          >
+            {/* Image */}
+            <img
+              src={ev.image || '/placeholder.jpg'}
+              alt={ev.title}
+              className="w-24 h-24 object-cover rounded-md"
+            />
+
+            {/* Details */}
+            <div className="flex-1">
+              <p className="text-lg font-semibold text-gray-800">{ev.title}</p>
+              <p className="text-sm text-gray-500 mb-2">{new Date(ev.start_datetime).toLocaleDateString()}</p>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" /> {ev.attendees} attendees
+                </span>
+                <span className="flex items-center gap-1">
+                  <CreditCard className="w-4 h-4" /> KSh {ev.revenue?.toFixed(2)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" /> {ev.rating}/5
+                </span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  ev.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {ev.status}
+                </span>
+              </div>
+            </div>
+
+            {/* Eye Icon Link */}
+            <button
+              onClick={() => router.push(`/organizer/events/${ev.id}`)}
+              className="text-amber-600 hover:text-amber-800"
+              title="View Details"
+            >
+              <Eye className="w-6 h-6" />
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  )}
+
+  {/* Upcoming */}
+  {activeTab === 'Upcoming' && (
+    <div className="space-y-4">
+      {upcoming.length === 0 ? (
+        <p className="text-gray-500">No upcoming events.</p>
+      ) : (
+        upcoming.map((ev) => (
+          <div
+            key={ev.id}
+            className="flex gap-4 items-center bg-white p-4 rounded-md border shadow-sm"
+          >
+            <img
+              src={ev.image || '/placeholder.jpg'}
+              alt={ev.title}
+              className="w-24 h-24 object-cover rounded-md"
+            />
+            <div className="flex-1">
+              <p className="text-lg font-semibold text-gray-800">{ev.title}</p>
+              <p className="text-sm text-gray-500 mb-2">{new Date(ev.start_datetime).toLocaleString()}</p>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" /> {ev.attendees} expected
+                </span>
+                <span className="flex items-center gap-1">
+                  <CreditCard className="w-4 h-4" /> KSh {ev.revenue?.toFixed(2)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500" /> {ev.rating}/5
+                </span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  ev.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {ev.status}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push(`/organizer/events/${ev.id}`)}
+              className="text-amber-600 hover:text-amber-800"
+              title="View Details"
+            >
+              <Eye className="w-6 h-6" />
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  )}
+
+  {/* Analytics (unchanged) */}
+  {activeTab === 'Analytics' && analytics && (
+    <div className="grid md:grid-cols-3 gap-6">
+      <div className="bg-white shadow-sm rounded-xl p-4 border text-center">
+        <p className="text-sm text-gray-500 mb-1">Total Events</p>
+        <p className="text-2xl font-bold text-amber-600">{analytics.total_events}</p>
       </div>
+      <div className="bg-white shadow-sm rounded-xl p-4 border text-center">
+        <p className="text-sm text-gray-500 mb-1">Avg. Attendees/Event</p>
+        <p className="text-2xl font-bold text-amber-600">{analytics.avg_attendees}</p>
+      </div>
+      <div className="bg-white shadow-sm rounded-xl p-4 border text-center">
+        <p className="text-sm text-gray-500 mb-1">Avg. Rating</p>
+        <p className="text-2xl font-bold text-amber-600">{analytics.avg_rating}</p>
+      </div>
+    </div>
+  )}
+</div>
+
     </div>
   );
 }

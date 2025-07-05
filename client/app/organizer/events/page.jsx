@@ -3,15 +3,15 @@
 import { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2, Calendar, MapPin, Users, Ticket } from 'lucide-react';
 import axios from 'axios';
-// import EventModal from '../components/EventModal';
+import EventModal from '../components/EventModal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [showModal, setShowModal] = useState(false);
-  // const [editingEvent, setEditingEvent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [organiserId, setOrganiserId] = useState(null);
   const router = useRouter();
 
@@ -213,13 +213,13 @@ export default function EventsPage() {
         </div>
       )}
 
-      {/* <EventModal
+      <EventModal
         open={showModal}
         onClose={closeModal}
         editingEvent={editingEvent}
         onSuccess={() => fetchEvents(organiserId)}
         organiserId={organiserId}
-      /> */}
+      />
     </section>
   );
 }
