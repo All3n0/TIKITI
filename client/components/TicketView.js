@@ -29,19 +29,20 @@ export default function TicketView({ event, order, ticketData, onClose }) {
   }).replace(':', '.');
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex justify-center items-center p-4 backdrop-blur">
-      <div
-        ref={ticketRef}
-        className="bg-black text-white w-full max-w-2xl aspect-[3/4] md:aspect-[5/3] rounded-lg shadow-2xl flex flex-col md:flex-row p-6 relative overflow-hidden font-sans"
-      >
+    // <div className="fixed inset-0 z-50 bg-black/80 flex justify-center items-center p-4 backdrop-blur">
+     <div
+  ref={ticketRef}
+className="bg-black text-white w-full max-w-2xl rounded-lg shadow-2xl flex flex-col md:flex-row p-6 relative font-sans h-auto"
+>
+
         {/* Close button (X) */}
-        <button 
+        {/* <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold z-10"
           aria-label="Close ticket"
         >
           &times;
-        </button>
+        </button> */}
 
         {/* Left section - Event details */}
         <div className="w-full md:w-2/3 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-dashed border-orange-500 flex flex-col">
@@ -131,7 +132,26 @@ export default function TicketView({ event, order, ticketData, onClose }) {
         >
           Download Ticket
         </button>
+        {/* Ticket Navigation
+<div className="absolute bottom-4 left-12 flex items-center gap-3">
+  <button
+    onClick={onPrev}
+    className="bg-gray-800 hover:bg-gray-700 text-white py-1 px-3 md:py-2 md:px-4 rounded-md text-xs md:text-sm"
+  >
+    Previous
+  </button>
+  <span className="text-gray-400 text-xs md:text-sm">
+    Ticket {index + 1} of {total}
+  </span>
+  <button
+    onClick={onNext}
+    className="bg-gray-800 hover:bg-gray-700 text-white py-1 px-3 md:py-2 md:px-4 rounded-md text-xs md:text-sm"
+  >
+    Next
+  </button>
+</div> */}
+
       </div>
-    </div>
+    // </div>
   );
 }

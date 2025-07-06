@@ -10,8 +10,9 @@ export default function EventDetailPage() {
   const [quantities, setQuantities] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [sessionUser, setSessionUser] = useState(null); // ✅ Now holds full user object
-  const [ticketData, setTicketData] = useState(null);
+const [ticketsData, setTicketsData] = useState([]);
   const [orderInfo, setOrderInfo] = useState(null);
+  const [currentTicketIndex, setCurrentTicketIndex] = useState(0);
 
   // ✅ Fetch event details
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function EventDetailPage() {
   };
 
   const handlePayment = async () => {
-    if (!sessionUser) return alert('Please log in to continue.');
+    if (!sessionUser) {window.location.href = '/login'; return;}
 
     try {
       const response = await fetch('http://localhost:5557/checkout', {
@@ -74,16 +75,16 @@ export default function EventDetailPage() {
 
       const data = await response.json();
       if (response.ok) {
-        const firstTicket = data.tickets[0];
-        const ticket = {
-          attendee_name: firstTicket.attendee_name,
-          attendee_email: firstTicket.attendee_email,
-          ticket_type: firstTicket.ticket_type,
-          price: firstTicket.price,
-          serial: firstTicket.unique_code,
-          qr_code_path: firstTicket.qr_code_path,
-        };
-        setTicketData(ticket);
+        const tickets = data.tickets.map(t => ({
+  attendee_name: t.attendee_name,
+  attendee_email: t.attendee_email,
+  ticket_type: t.ticket_type,
+  price: t.price,
+  serial: t.unique_code,
+  qr_code_path: t.qr_code_path,
+}));
+setTicketsData(tickets);
+
         setOrderInfo({ order_id: data.order_id, total: data.total,transaction_reference: data.transaction_reference });
 
         setQuantities(prev => {
@@ -181,7 +182,7 @@ const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0
       {showModal && (
         <div className="fixed inset-0 z-50 backdrop-blur bg-black/30 flex justify-center items-center px-4">
           <div className="bg-white rounded-xl w-full max-w-2xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
-            <button className="absolute top-3 right-4 text-2xl text-gray-500 hover:text-gray-700" onClick={() => setShowModal(false)}>&times;</button>
+            <button className="absolute top-3 right-4 text-2xl text-amber-500 hover:text-gray-700" onClick={() => setShowModal(false)}>&times;</button>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-amber-700 mb-2">{event.title}</h2>
               <div className="text-sm text-gray-600 space-y-1">
@@ -216,9 +217,32 @@ const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0
       )}
 
       {/* Ticket View */}
-      {ticketData && (
-        <TicketView event={event} ticketData={ticketData} order={orderInfo} onClose={() => setTicketData(null)}/>
-      )}
+      {ticketsData.length > 0 && (
+  <div className="fixed inset-0 z-50 backdrop-blur bg-black/60 flex justify-center items-center px-4">
+    <div className="bg-transparent rounded-xl w-full max-w-5xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+      <button
+        className="absolute top-3 right-4 text-2xl text-amber-500 hover:text-amber-700"
+        onClick={() => setTicketsData([])}
+      >
+        &times;
+      </button>
+      <h2 className="text-2xl font-bold text-center text-amber-700 mb-6">{event.title} - Tickets</h2>
+     <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-2">
+  {ticketsData.map((ticket, index) => (
+    <TicketView
+      key={index}
+      event={event}
+      ticketData={ticket}
+      onClose={() => setTicketsData([])}
+      order={orderInfo}
+    />
+  ))}
+</div>
+
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
