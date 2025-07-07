@@ -9,7 +9,7 @@ const navItems = [
   { href: '/management/dashboard', icon: <Home size={18} />, label: 'Dashboard' },
   { href: '/management/events', icon: <CalendarDays size={18} />, label: 'Events' },
   { href: '/management/tickets', icon: <Ticket size={18} />, label: 'Ticket Types' },
-  { href: '/management/orders', icon: <Users size={18} />, label: 'Orders' },
+  { href: '/management/organizers', icon: <Users size={18} />, label: 'Organizers' },
   { href: '/management/venues', icon: <MapPinHouse size={18} />, label: 'Venues' },
 ];
 
