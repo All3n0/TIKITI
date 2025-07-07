@@ -353,25 +353,44 @@ export default function EventDetailsPage({ params }) {
   )}
 </div>
           
-          {event.status === 'pending' && (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4">Event Approval</h2>
-              <div className="flex gap-4">
-                <button
-                  onClick={handleApprove}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Approve Event
-                </button>
-                <button
-                  onClick={handleReject}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Reject Event
-                </button>
-              </div>
-            </div>
-          )}
+{event.status === 'pending' && (
+  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h2 className="text-xl font-bold text-gray-800">Pending Approval</h2>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <button
+        onClick={handleApprove}
+        className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        Approve Event
+      </button>
+      
+      <button
+        onClick={handleReject}
+        className="flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Reject Event
+      </button>
+    </div>
+    
+    <p className="mt-3 text-sm text-gray-500 text-center">
+      Review all event details before making a decision
+    </p>
+  </div>
+)}
           
           {event.sponsors && event.sponsors.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm p-6">

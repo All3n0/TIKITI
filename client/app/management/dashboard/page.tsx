@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Eye } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [manager, setManager] = useState(null);
@@ -212,77 +213,126 @@ export default function AdminDashboard() {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'events' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-600 underline underline-offset-4">Events Awaiting Approval</h2>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search events..."
-                      className="border border-gray-400 rounded-md px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700"
-                    />
-                    <svg
-                      className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
+  <div>
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <h2 className="text-2xl font-bold text-gray-600 underline underline-offset-4">Events Awaiting Approval</h2>
+      <div className="relative w-full md:w-64">
+        <input
+          type="text"
+          placeholder="Search events..."
+          className="border border-gray-400 rounded-md px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 w-full"
+        />
+        <svg
+          className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+      </div>
+    </div>
+
+    {pendingEvents.length === 0 ? (
+      <div className="text-center py-10 text-gray-500">
+        No events awaiting approval
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 gap-4">
+        {pendingEvents.map((event) => (
+          <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
+              {/* Event Info with Icons */}
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                  </svg>
+                  <h3 className="font-bold text-lg text-gray-800">{event.title}</h3>
                 </div>
-
-                {pendingEvents.length === 0 ? (
-                  <div className="text-center py-10 text-gray-500">
-                    No events awaiting approval
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingEvents.map((event) => (
-                      <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-lg">{event.title}</h3>
-                            <p className="text-gray-600">{event.organizer_name}</p>
-                            {event.venue_name && <p className="text-gray-600">{event.venue_name}</p>}
-                          </div>
-                          <div className="flex items-center gap-3">
-  {/* Approve Button */}
-  <button
-    onClick={() => handleApproveEvent(event.id)}
-    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
-  >
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-    Approve
-  </button>
-
-  {/* Reject Button */}
-  <button
-    onClick={() => handleRejectEvent(event.id)}
-    className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
-  >
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-    Reject
-  </button>
-</div>
-                        </div>
-                      </div>
-                    ))}
+                
+                <div className="flex items-center gap-2 text-gray-600">
+                  <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>{event.organizer_name}</span>
+                </div>
+                
+                {event.venue_name && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{event.venue_name}</span>
                   </div>
                 )}
               </div>
-            )}
 
+              {/* Action Buttons */}
+              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2">
+                <div className="flex gap-2">
+                  {/* View Button */}
+                  <button
+                    onClick={() => router.push(`/management/events/${event.id}`)}
+                    className="p-2 text-teal-600 hover:text-white bg-gray-100 hover:bg-teal-600 rounded-lg transition-colors"
+                    title="View details"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="flex gap-2">
+                  {/* Approve Button */}
+                  <button
+                    onClick={() => handleApproveEvent(event.id)}
+                    className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-1.5 px-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 text-sm sm:text-base sm:py-2 sm:px-4"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="hidden sm:inline">Approve</span>
+                  </button>
+
+                  {/* Reject Button */}
+                  <button
+                    onClick={() => handleRejectEvent(event.id)}
+                    className="flex items-center gap-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-1.5 px-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 text-sm sm:text-base sm:py-2 sm:px-4"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span className="hidden sm:inline">Reject</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
             {activeTab === 'venues' && (
               <div>
                 <h2 className="text-2xl font-bold mb-6 text-gray-600 underline underline-offset-4">Venues Awaiting Approval</h2>
