@@ -1,32 +1,46 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function EventDetailsPage({ params }) {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showOrganizerModal, setShowOrganizerModal] = useState(false);
   const [organizerDetails, setOrganizerDetails] = useState(null);
+  const [ticketSummary, setTicketSummary] = useState(null);
   const router = useRouter();
   const eventId = params.id;
 
   useEffect(() => {
+    const fetchTicketSummary = async () => {
+      try {
+        const res = await fetch(`http://localhost:5557/events/${eventId}/tickets-summary`);
+        if (res.ok) {
+          const data = await res.json();
+          setTicketSummary(data);
+        }
+      } catch (err) {
+        console.error("Error fetching ticket summary:", err);
+      }
+    };
+    fetchTicketSummary();
+
     const fetchEvent = async () => {
       try {
         const res = await fetch(`http://localhost:5557/management/events/${eventId}`, {
-          credentials: 'include'
+          credentials: "include",
         });
-        
+
         if (!res.ok) {
-          router.push('/management/login');
+          router.push("/management/login");
           return;
         }
-        
+
         const data = await res.json();
         setEvent(data);
       } catch (err) {
         console.error(err);
-        router.push('/management/login');
+        router.push("/management/login");
       } finally {
         setLoading(false);
       }
@@ -38,12 +52,12 @@ export default function EventDetailsPage({ params }) {
   const handleApprove = async () => {
     try {
       const res = await fetch(`http://localhost:5557/management/events/${eventId}/approve`, {
-        method: 'POST',
-        credentials: 'include'
+        method: "POST",
+        credentials: "include",
       });
-      
+
       if (res.ok) {
-        router.refresh(); // Refresh the page to show updated status
+        router.refresh();
       }
     } catch (err) {
       console.error(err);
@@ -53,12 +67,12 @@ export default function EventDetailsPage({ params }) {
   const handleReject = async () => {
     try {
       const res = await fetch(`http://localhost:5557/management/events/${eventId}/reject`, {
-        method: 'POST',
-        credentials: 'include'
+        method: "POST",
+        credentials: "include",
       });
-      
+
       if (res.ok) {
-        router.refresh(); // Refresh the page to show updated status
+        router.refresh();
       }
     } catch (err) {
       console.error(err);
@@ -68,12 +82,11 @@ export default function EventDetailsPage({ params }) {
   const fetchOrganizerDetails = async (organizerId) => {
     try {
       const res = await fetch(`http://localhost:5557/management/organizers/${organizerId}`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       if (res.ok) {
         const data = await res.json();
-        
         setOrganizerDetails(data);
         setShowOrganizerModal(true);
       }
@@ -199,8 +212,10 @@ export default function EventDetailsPage({ params }) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {event.ticket_types.map(ticket => {
-            const ticketsSold = ticket.quantity_available - ticket.remaining_quantity || 0; // Assuming you have remaining_quantity
-            const soldPercentage = (ticketsSold / ticket.quantity_available) * 100;
+            const summary = ticketSummary?.find(t => t.ticket_type_id === ticket.id);
+            const soldCount = summary?.sold || 0;
+            const remaining = summary?.remaining || ticket.quantity_available;
+            const salesPercentage = summary?.sales_percentage || 0;
             
             return (
               <tr key={ticket.id} className="hover:bg-gray-50">
@@ -218,16 +233,16 @@ export default function EventDetailsPage({ params }) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  ${ticket.price.toFixed(2)}
+                  Ksh {ticket.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500 mb-1">
-                    {ticketsSold} sold • {ticket.remaining_quantity || ticket.quantity_available} available
+                    {soldCount} sold • {remaining} available
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full" 
-                      style={{ width: `${soldPercentage}%` }}
+                      style={{ width: `${salesPercentage}%` }}
                     ></div>
                   </div>
                 </td>
@@ -251,7 +266,7 @@ export default function EventDetailsPage({ params }) {
         <span className="font-medium">Total Tickets:</span> {event.ticket_types.reduce((sum, ticket) => sum + ticket.quantity_available, 0)}
       </div>
       <div>
-        <span className="font-medium">Total Sold:</span> {event.ticket_types.reduce((sum, ticket) => sum + (ticket.quantity_available - (ticket.remaining_quantity || ticket.quantity_available)), 0)}
+        <span className="font-medium">Total Sold:</span> {ticketSummary?.reduce((sum, ticket) => sum + ticket.sold, 0) || 0}
       </div>
     </div>
   </div>

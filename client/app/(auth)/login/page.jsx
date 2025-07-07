@@ -102,7 +102,7 @@ export default function LoginPage() {
             </div>
             <button
               type="submit"
-              className="w-full btn btn-outline border-amber-600 text-white py-3.5 rounded-lg hover:bg-amber-700 transition-colors font-medium text-lg shadow hover:shadow-md"
+              className="w-full btn btn-outline border border-amber-600 text-amber-600 py-3.5 rounded-lg hover:bg-amber-700 hover:text-white transition-colors font-medium text-lg shadow hover:shadow-md"
             >
               Login
             </button>
