@@ -1,8 +1,14 @@
 'use client';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export default function Navbar({ onToggleDrawer }: { onToggleDrawer: () => void }) {
+export default function Navbar({
+  onToggleDrawer,
+  collapsed,
+}: {
+  onToggleDrawer: () => void;
+  collapsed: boolean;
+}) {
   const [manager, setManager] = useState<any>(null);
 
   useEffect(() => {
@@ -16,12 +22,19 @@ export default function Navbar({ onToggleDrawer }: { onToggleDrawer: () => void 
 
   return (
     <header className="bg-teal-800 text-white px-4 py-4 shadow flex items-center justify-between">
-      {/* Drawer toggle (visible on all screens, especially mobile) */}
-      <button onClick={onToggleDrawer} className="md:hidden mr-2 p-2 rounded hover:bg-teal-700">
-        <Menu size={20} />
-      </button>
+      <div className="flex items-center">
+        {/* Toggle button - only shows one icon at a time */}
+        <button 
+          onClick={onToggleDrawer} 
+          className="mr-2 p-2 rounded hover:bg-teal-700"
+          aria-label={collapsed ? "Open menu" : "Close menu"}
+        >
+          {collapsed ? <Menu size={20} /> : <X size={20} />}
+        </button>
 
-      <h1 className="text-lg font-semibold">Management Panel</h1>
+        <h1 className="text-lg font-semibold">Management Panel</h1>
+      </div>
+      
       {/* <span className="font-bold text-amber-400">Welcome, {manager?.name}</span> */}
     </header>
   );

@@ -28,7 +28,7 @@ export default function ManagementLayout({ children }: { children: React.ReactNo
 
           <div className="flex-1 flex flex-col w-full bg-white">
             {/* Only show Navbar if not on auth page */}
-            {!isAuthPage && <Navbar onToggleDrawer={toggleDrawer} />}
+            {!isAuthPage && <Navbar onToggleDrawer={toggleDrawer} collapsed={drawerCollapsed} />}
 
             <main className={`flex-1 ${!isAuthPage ? 'pt-16' : ''} bg-white`}>
               {children}

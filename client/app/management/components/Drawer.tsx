@@ -37,12 +37,12 @@ export default function Drawer({
 
         <div className="p-4 flex items-center justify-between border-b border-teal-700">
           {!collapsed && <h1 className="text-xl font-bold tracking-tight">TIKITI</h1>}
-          <button
+          {/* <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-1 rounded hover:bg-teal-700 transition"
           >
             <X size={20} />
-          </button>
+          </button> */}
         </div>
 
         <nav className="p-4 space-y-2">
