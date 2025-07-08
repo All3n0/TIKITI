@@ -58,13 +58,13 @@ export default function OrganizersManagementPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <h1 className="text-3xl font-bold underline underline-offset-4 text-indigo-800">Organizers Management</h1>
+        <h1 className="text-3xl font-bold underline underline-offset-4 text-teal-800">Organizers Management</h1>
 
         <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700"
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -78,7 +78,7 @@ export default function OrganizersManagementPage() {
               placeholder="Search organizers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 w-full"
+              className="border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 w-full"
             />
             <svg
               className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
@@ -141,8 +141,8 @@ export default function OrganizersManagementPage() {
 
                 <div className="flex justify-between items-center border-t border-gray-100 pt-4">
                   <Link
-                    href={`/management/organizer/${org.id}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                    href={`/management/organizers/${org.id}`}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-800 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

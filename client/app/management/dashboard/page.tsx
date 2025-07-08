@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye } from 'lucide-react';
+import axios from 'axios';
 
 export default function AdminDashboard() {
   const [manager, setManager] = useState(null);
@@ -90,7 +91,59 @@ export default function AdminDashboard() {
     });
     router.push('/management/login');
   };
+const handleApprove = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:5557/management/venues/${id}/approve`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    setPendingVenues(prev => prev.filter(v => v.id !== id));
+    setStats(prev => ({
+      ...prev,
+      pendingVenues: prev.pendingVenues - 1
+    }));
+  } catch (err) {
+    console.error('Error approving venue:', err);
+    // Show error to user
+    alert('Failed to approve venue. Please try again.');
+  }
+};
+
+const handleReject = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:5557/management/venues/${id}/reject`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    setPendingVenues(prev => prev.filter(v => v.id !== id));
+    setStats(prev => ({
+      ...prev,
+      pendingVenues: prev.pendingVenues - 1
+    }));
+  } catch (err) {
+    console.error('Error rejecting venue:', err);
+    // Show error to user
+    alert('Failed to reject venue. Please try again.');
+  }
+};
   const handleApproveEvent = async (eventId) => {
     try {
       const res = await fetch(`http://localhost:5557/management/events/${eventId}/approve`, {
@@ -367,19 +420,26 @@ export default function AdminDashboard() {
 </div>
                           </div>
                           <div className="flex gap-2">
-  <button className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-    Approve
-  </button>
-  
-  <button className="flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md">
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-    Reject
-  </button>
+  <button
+  onClick={() => handleApprove(venue.id)}
+  className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+  Approve
+</button>
+
+<button
+  onClick={() => handleReject(venue.id)}
+  className="flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  Reject
+</button>
+
 </div>
                         </div>
                       </div>

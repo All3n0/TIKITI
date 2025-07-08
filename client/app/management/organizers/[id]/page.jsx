@@ -267,70 +267,99 @@ export default function OrganizerDetailsPage({ params }) {
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-teal-800">Events Organized</h2>
-          <div className="text-sm bg-gray-100 px-3 py-1 rounded-full">
-            <span className="font-medium">{organizer.events_count}</span> total events
+          <div className="text-sm bg-teal-800 px-3 py-1 rounded-full">
+            <span className="font-medium ">{organizer.events_count}</span> total events
           </div>
         </div>
 
         <LazyRow
-          items={events}
-          loading={eventsLoading}
-          hasMore={hasMoreEvents}
-          onLoadMore={loadMoreEvents}
-          renderItem={(event) => (
-            <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex gap-4">
-                {event.image && (
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
-                )}
-                <div className="flex-grow">
-                  <h3 className="font-bold text-lg text-teal-800 mb-1">{event.title}</h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span>
-                      {new Date(event.start_datetime).toLocaleDateString()} -{' '}
-                      {new Date(event.end_datetime).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 line-clamp-2 mb-3">{event.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">
-                      {event.venue?.name}, {event.venue?.city}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        event.status === 'approved'
-                          ? 'bg-green-100 text-green-800'
-                          : event.status === 'rejected'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {event.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          emptyMessage="This organizer hasn't created any events yet."
-        />
+  items={events}
+  loading={eventsLoading}
+  hasMore={hasMoreEvents}
+  onLoadMore={loadMoreEvents}
+  renderItem={(event) => (
+    <div 
+      key={event.id} 
+      className="flex-shrink-0 w-72 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200"
+    >
+      {event.image && (
+        <div className="h-40 overflow-hidden">
+          <img
+            src={event.image}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{event.title}</h3>
+          <span
+            className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium ${
+              event.status === 'approved'
+                ? 'bg-green-100 text-green-800'
+                : event.status === 'rejected'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
+          >
+            {event.status}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+          <svg
+            className="w-4 h-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span className="line-clamp-1">
+            {new Date(event.start_datetime).toLocaleDateString()} -{' '}
+            {new Date(event.end_datetime).toLocaleDateString()}
+          </span>
+        </div>
+        
+        <p className="text-gray-600 text-sm line-clamp-2 mb-4">{event.description}</p>
+        
+        {event.venue && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <svg
+              className="w-4 h-4 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span className="line-clamp-1">
+              {event.venue.name}, {event.venue.city}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+  emptyMessage="This organizer hasn't created any events yet."
+/>
       </div>
 
       {/* Sponsors Section */}
