@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye } from 'lucide-react';
+import { Eye, Link } from 'lucide-react';
 import axios from 'axios';
 
 export default function AdminDashboard() {
@@ -396,54 +396,57 @@ const handleReject = async (id) => {
                 ) : (
                   <div className="space-y-4">
                     {pendingVenues.map((venue) => (
-                      <div key={venue.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-lg mb-2 text-gray-600">{venue.name}</h3>
-                            <div className="space-y-1 text-gray-600">
-  <div className="flex items-center gap-2">
-    <svg className="w-4 h-4 flex-shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    <span>{venue.address}, {venue.city}, {venue.state}</span>
-  </div>
-  
-  {venue.capacity && (
-    <div className="flex items-center gap-2">
-      <svg className="w-4 h-4 flex-shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-      <span>Capacity: {venue.capacity}</span>
+  <div key={venue.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-200">
+    <div className="p-5">
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        {/* Venue Info */}
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-gray-800 mb-2">{venue.name}</h3>
+          
+          <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+            <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{venue.address}, {venue.city}, {venue.state}</span>
+          </div>
+          
+          {venue.capacity && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <svg className="w-4 h-4 flex-shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Capacity: {venue.capacity.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons - Stack on mobile, row on larger screens */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:self-center">
+          <button
+            onClick={() => handleApprove(venue.id)}
+            className="flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="hidden sm:inline">Approve</span>
+          </button>
+
+          <button
+            onClick={() => handleReject(venue.id)}
+            className="flex items-center justify-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span className="hidden sm:inline">Reject</span>
+          </button>
+        </div>
+      </div>
     </div>
-  )}
-</div>
-                          </div>
-                          <div className="flex gap-2">
-  <button
-  onClick={() => handleApprove(venue.id)}
-  className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
->
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
-  Approve
-</button>
-
-<button
-  onClick={() => handleReject(venue.id)}
-  className="flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
->
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-  Reject
-</button>
-
-</div>
-                        </div>
-                      </div>
-                    ))}
+  </div>
+))}
                   </div>
                 )}
               </div>
@@ -459,39 +462,73 @@ const handleReject = async (id) => {
                 ) : (
                   <div className="space-y-4">
                     {organizers.map((organizer) => (
-                      <div key={organizer.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-lg mb-2 text-gray-600">{organizer.name}</h3>
-                            <p className="text-gray-600">{organizer.email}</p>
-                            <p className="text-gray-600">{organizer.phone}</p>
-                            {organizer.speciality && <p className="text-gray-600">Speciality: {organizer.speciality}</p>}
-                          </div>
-                         <div className="flex items-center gap-2">
-  {/* View Button - Eye Icon */}
-  <button
+  <div key={organizer.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-200">
+    <div className="p-5">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            {organizer.logo ? (
+              <img 
+                src={organizer.logo} 
+                alt={organizer.name}
+                className="w-10 h-10 object-contain rounded-full border border-gray-200"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            )}
+            <h3 className="text-lg font-bold text-gray-800">{organizer.name}</h3>
+          </div>
+
+          <div className="space-y-2 text-sm text-gray-600 pl-13">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <a href={`mailto:${organizer.email}`} className="hover:text-teal-600 hover:underline">
+                {organizer.email}
+              </a>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <a href={`tel:${organizer.phone}`} className="hover:text-teal-600 hover:underline">
+                {organizer.phone}
+              </a>
+            </div>
+
+            {organizer.speciality && (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  {organizer.speciality}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button
     className="p-2 text-blue-500 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all duration-200 hover:shadow-sm"
     title="View"  // Accessibility: tooltip on hover
+    onClick={()=>router.push(`/management/organizers/${organizer.id}`)}
   >
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
     </svg>
   </button>
-
-  {/* Edit Button - Pencil Icon */}
-  <button
-    className="p-2 text-amber-500 hover:text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-full transition-all duration-200 hover:shadow-sm"
-    title="Edit"  // Accessibility: tooltip on hover
-  >
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  </button>
-</div>
-                        </div>
-                      </div>
-                    ))}
+      </div>
+    </div>
+  </div>
+))}
                   </div>
                 )}
               </div>
