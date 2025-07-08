@@ -36,13 +36,13 @@ className="bg-black text-white w-full max-w-2xl rounded-lg shadow-2xl flex flex-
 >
 
         {/* Close button (X) */}
-        {/* <button 
+        <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold z-10"
           aria-label="Close ticket"
         >
           &times;
-        </button> */}
+        </button>
 
         {/* Left section - Event details */}
         <div className="w-full md:w-2/3 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-dashed border-orange-500 flex flex-col">
