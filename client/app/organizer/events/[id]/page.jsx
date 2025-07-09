@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
-import { Calendar, MapPin, Users, Edit, Trash2, Ticket, DollarSign, Clock, Info } from 'lucide-react';
+import { Calendar, MapPin,Handshake, Users, Edit, Trash2, Ticket, DollarSign, Clock, Info } from 'lucide-react';
 import EventModal from '../../components/EventModal';
 
 export default function OrganizerEventDetails() {
@@ -149,6 +149,23 @@ export default function OrganizerEventDetails() {
               ))}
             </div>
           </div>
+          {event.sponsors && event.sponsors.length > 0 && (
+  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
+    <h2 className="font-semibold text-gray-800 mb-3 flex items-center">
+      <Handshake className="text-amber-600 mr-2" size={18} />
+      Sponsors
+    </h2>
+    <div className="flex flex-wrap gap-3">
+      {event.sponsors.map(s => (
+        <div key={s.id} className="bg-white p-3 rounded-lg shadow-sm border text-sm text-gray-700">
+          <p className="font-semibold text-amber-700">{s.name}</p>
+          {s.sponsorship_level && <p>Level: {s.sponsorship_level}</p>}
+          {s.website && <p className="text-blue-600"><a href={s.website} target="_blank">Website</a></p>}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
           <div className="flex gap-4 mt-8">
             <button

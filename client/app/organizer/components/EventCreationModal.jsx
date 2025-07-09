@@ -1,28 +1,15 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import axios from 'axios';
 
 export default function EventCreationModal({ open, onClose, onSuccess, organiserId }) {
-  const [venueCapacity, setVenueCapacity] = useState(0);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    venue_id: '',
-    start_datetime: '',
-    end_datetime: '',
-    image: '',
-    category: '',
-    capacity: 0
-  });
+  // ... existing state declarations ...
 
-  const [ticketTypes, setTicketTypes] = useState([
-    { name: '', price: '', quantity: '', sales_start: '', sales_end: '', description: '' }
-  ]);
-  const [venues, setVenues] = useState([]);
+  // New sponsor state
+  const [selectedSponsors, setSelectedSponsors] = useState([]);
 
+  // Update the initial state to use selectedSponsors instead of selectedSponsorIds
   useEffect(() => {
     const fetchVenues = async () => {
       try {
@@ -32,32 +19,34 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
         console.error('Error fetching venues:', err);
       }
     };
+
+    const fetchSponsors = async () => {
+      try {
+        const res = await axios.get('http://localhost:5557/sponsors');
+        setSponsors(res.data);
+      } catch (err) {
+        console.error('Error fetching sponsors:', err);
+      }
+    };
+
     fetchVenues();
+    fetchSponsors();
   }, []);
 
-  const addTicketType = () => {
-    setTicketTypes([
-      ...ticketTypes,
-      { name: '', price: '', quantity: '', sales_start: '', sales_end: '', description: '' }
-    ]);
-  };
-
-  const updateTicketType = (index, field, value) => {
-    const updated = [...ticketTypes];
-    updated[index][field] = value;
-    setTicketTypes(updated);
-  };
-
-  // Check ticket quantity vs capacity whenever ticketTypes or venueCapacity changes
-  useEffect(() => {
-    const total = ticketTypes.reduce((sum, t) => sum + Number(t.quantity || 0), 0);
-    if (total > venueCapacity) {
-      setError(`Total tickets (${total}) exceed venue capacity (${venueCapacity})`);
-    } else {
-      setError('');
+  // Add sponsor handler
+  const handleAddSponsor = (sponsorId) => {
+    const sponsor = sponsors.find(s => s.id === sponsorId);
+    if (sponsor && !selectedSponsors.some(s => s.id === sponsorId)) {
+      setSelectedSponsors([...selectedSponsors, sponsor]);
     }
-  }, [ticketTypes, venueCapacity]);
+  };
 
+  // Remove sponsor handler
+  const handleRemoveSponsor = (sponsorId) => {
+    setSelectedSponsors(selectedSponsors.filter(s => s.id !== sponsorId));
+  };
+
+  // Update handleSubmit to use selectedSponsors
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -69,8 +58,9 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
 
     const payload = {
       ...formData,
-      capacity: venueCapacity, // force backend to use venue's capacity
-      ticket_types: ticketTypes
+      capacity: venueCapacity,
+      ticket_types: ticketTypes,
+      sponsor_ids: selectedSponsors.map(s => s.id) // Convert to array of IDs
     };
 
     try {
@@ -83,8 +73,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
     }
   };
 
-  if (!open) return null;
-
+  // In your JSX, replace the sponsors section with:
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-50 backdrop-blur">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -97,7 +86,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6 text-gray-700">
 
-          {/* Event Info */}
+          {/* 1. Event Info */}
           <div>
             <h3 className="text-lg font-semibold mb-2">1. Event Info</h3>
             <div className="space-y-4">
@@ -118,7 +107,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
             </div>
           </div>
 
-          {/* Venue & Capacity */}
+          {/* 2. Venue & Capacity */}
           <div>
             <h3 className="text-lg font-semibold mb-2">2. Venue & Capacity</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -139,9 +128,53 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
             </div>
           </div>
 
-          {/* Ticket Types */}
+          {/* 3. Sponsors */}
+         // Inside EventCreationModal component
+<div>
+  <h3 className="text-lg font-semibold mb-2">3. Sponsors</h3>
+  
+  {/* Selected sponsors as badges */}
+  <div className="flex flex-wrap gap-2 mb-3">
+    {selectedSponsors.map(sponsor => (
+      <div key={sponsor.id} className="flex items-center bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm">
+        {sponsor.name}
+        <button 
+          type="button"
+          onClick={() => handleRemoveSponsor(sponsor.id)}
+          className="ml-2 text-amber-600 hover:text-amber-800"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    ))}
+  </div>
+
+  {/* Sponsor selection */}
+  <select
+    className="w-full p-2 border border-gray-300 rounded-md"
+    onChange={(e) => {
+      const sponsorId = parseInt(e.target.value);
+      if (sponsorId && !selectedSponsors.some(s => s.id === sponsorId)) {
+        const sponsor = sponsors.find(s => s.id === sponsorId);
+        if (sponsor) handleAddSponsor(sponsor);
+      }
+      e.target.value = ''; // Reset select
+    }}
+  >
+    <option value="">Add a sponsor...</option>
+    {sponsors
+      .filter(sponsor => !selectedSponsors.some(s => s.id === sponsor.id))
+      .map(sponsor => (
+        <option key={sponsor.id} value={sponsor.id}>
+          {sponsor.name}
+        </option>
+      ))}
+  </select>
+</div>
+
+          {/* 4. Ticket Types */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">3. Ticket Types</h3>
+            <h3 className="text-lg font-semibold mb-2">4. Ticket Types</h3>
             {ticketTypes.map((ticket, index) => (
               <div key={index} className="space-y-2 border p-4 rounded mb-4 bg-gray-50">
                 <div className="grid grid-cols-3 gap-4">

@@ -1,7 +1,6 @@
-// components/EventModal.jsx
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, MapPin, Users, Image as ImageIcon } from 'lucide-react';
+import { X, Calendar, Clock,Plus, MapPin, Users, Image as ImageIcon, Handshake } from 'lucide-react';
 import axios from 'axios';
 
 export default function EventModal({ open, onClose, editingEvent, onSuccess, organiserId }) {
@@ -15,34 +14,48 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
     category: '',
     capacity: 100
   });
+
   const [venues, setVenues] = useState([]);
+  const [sponsors, setSponsors] = useState([]);
+ const [selectedSponsors, setSelectedSponsors] = useState([]);
+const [selectedSponsorIds, setSelectedSponsorIds] = useState([]);
+const [newSponsorInput, setNewSponsorInput] = useState('');
   const [loadingVenues, setLoadingVenues] = useState(true);
 
-  useEffect(() => {
-    if (editingEvent) {
-      setFormData({
-        title: editingEvent.title,
-        description: editingEvent.description,
-        venue_id: editingEvent.venue_id,
-        start_datetime: editingEvent.start_datetime,
-        end_datetime: editingEvent.end_datetime,
-        image: editingEvent.image || '',
-        category: editingEvent.category || '',
-        capacity: editingEvent.capacity || 100
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        venue_id: '',
-        start_datetime: '',
-        end_datetime: '',
-        image: '',
-        category: '',
-        capacity: 100
-      });
-    }
-  }, [editingEvent]);
+// Update your useEffect that handles editingEvent
+useEffect(() => {
+  if (editingEvent) {
+    setFormData({
+      title: editingEvent.title,
+      description: editingEvent.description,
+      venue_id: editingEvent.venue_id,
+      start_datetime: editingEvent.start_datetime,
+      end_datetime: editingEvent.end_datetime,
+      image: editingEvent.image || '',
+      category: editingEvent.category || '',
+      capacity: editingEvent.capacity || 100
+    });
+
+    // Make sure we're using the full sponsor objects from the API response
+    const sponsorObjs = editingEvent.sponsors || [];
+    setSelectedSponsorIds(sponsorObjs.map(s => s.id));
+    setSelectedSponsors(sponsorObjs);
+  } else {
+    setFormData({
+      title: '',
+      description: '',
+      venue_id: '',
+      start_datetime: '',
+      end_datetime: '',
+      image: '',
+      category: '',
+      capacity: 100
+    });
+    setSelectedSponsorIds([]);
+    setSelectedSponsors([]);
+  }
+}, [editingEvent]);
+
 
   useEffect(() => {
     const fetchVenues = async () => {
@@ -55,16 +68,43 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
         setLoadingVenues(false);
       }
     };
-    fetchVenues();
-  }, []);
+    
 
+    const fetchSponsors = async () => {
+      try {
+        const res = await axios.get('http://localhost:5557/sponsors');
+        setSponsors(res.data);
+      } catch (err) {
+        console.error('Error fetching sponsors:', err);
+      }
+    };
+
+    fetchVenues();
+    fetchSponsors();
+  }, []);
+  const handleAddSponsor = (sponsor) => {
+  setSelectedSponsors(prev => [...prev, sponsor]);
+  setSelectedSponsorIds(prev => [...prev, sponsor.id]);
+  setNewSponsorInput('');
+};
+
+const handleRemoveSponsor = (id) => {
+  setSelectedSponsors(prev => prev.filter(s => s.id !== id));
+  setSelectedSponsorIds(prev => prev.filter(sid => sid !== id));
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const payload = {
+      ...formData,
+      sponsor_ids: selectedSponsorIds
+    };
+
     try {
       if (editingEvent) {
-        await axios.patch(`http://localhost:5557/events/${editingEvent.id}`, formData);
+        await axios.patch(`http://localhost:5557/events/${editingEvent.id}`, payload);
       } else {
-        await axios.post(`http://localhost:5557/organiser/${organiserId}/events`, formData);
+        await axios.post(`http://localhost:5557/organiser/${organiserId}/events`, payload);
       }
       onSuccess();
       onClose();
@@ -87,10 +127,10 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
             <X size={24} />
           </button>
         </div>
-        
-       
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-gray-500">
+
+          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
             <input
@@ -98,20 +138,22 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
               required
               className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               rows={3}
               className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
+          {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -122,7 +164,7 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
                 required
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={formData.start_datetime}
-                onChange={(e) => setFormData({...formData, start_datetime: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
               />
             </div>
 
@@ -135,11 +177,12 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
                 required
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={formData.end_datetime}
-                onChange={(e) => setFormData({...formData, end_datetime: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, end_datetime: e.target.value })}
               />
             </div>
           </div>
 
+          {/* Venue & Capacity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -149,11 +192,11 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
                 required
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={formData.venue_id}
-                onChange={(e) => setFormData({...formData, venue_id: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, venue_id: e.target.value })}
                 disabled={loadingVenues}
               >
                 <option value="">Select Venue</option>
-                {venues.map(venue => (
+                {venues.map((venue) => (
                   <option key={venue.id} value={venue.id}>
                     {venue.name} - {venue.city}
                   </option>
@@ -170,11 +213,12 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
                 min="1"
                 className="w-full p-2 border border-gray-300 rounded-md"
                 value={formData.capacity}
-                onChange={(e) => setFormData({...formData, capacity: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
               />
             </div>
           </div>
 
+          {/* Image */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
               <ImageIcon className="mr-2 w-4 h-4" /> Image URL
@@ -183,22 +227,102 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
               placeholder="https://example.com/image.jpg"
             />
           </div>
 
+          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <input
               type="text"
               className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               placeholder="e.g., Music, Sports, Conference"
             />
           </div>
 
+          {/* Sponsors */}
+{/* Sponsors Section */}
+<div>
+  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+    <Handshake className="mr-2 w-4 h-4" /> Sponsors
+  </label>
+
+  {/* Selected sponsor badges */}
+  <div className="flex flex-wrap gap-2 mb-3">
+    {selectedSponsors.map(sponsor => {
+      // Find the full sponsor object from the API data if it exists
+      const fullSponsor = sponsors.find(s => s.id === sponsor.id) || sponsor;
+      return (
+        <span
+          key={fullSponsor.id}
+          className="inline-flex items-center bg-amber-100/70 text-amber-800 text-sm px-3 py-1 rounded-full border border-amber-200"
+        >
+          {fullSponsor.name}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              handleRemoveSponsor(fullSponsor.id);
+            }}
+            className="ml-2 text-amber-600 hover:text-amber-800 focus:outline-none"
+            aria-label={`Remove ${fullSponsor.name}`}
+          >
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </span>
+      );
+    })}
+  </div>
+
+  {/* Sponsor search & select */}
+  <div className="relative">
+    <input
+      type="text"
+      value={newSponsorInput}
+      onChange={(e) => setNewSponsorInput(e.target.value)}
+      placeholder="Search sponsors..."
+      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      }}
+    />
+    {newSponsorInput && (
+      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+        {sponsors
+          .filter(sponsor =>
+            !selectedSponsors.some(s => s.id === sponsor.id) &&
+            sponsor.name.toLowerCase().includes(newSponsorInput.toLowerCase())
+          )
+          .map(sponsor => (
+            <div
+              key={sponsor.id}
+              className="p-2 hover:bg-amber-50 cursor-pointer flex items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                handleAddSponsor(sponsor);
+              }}
+            >
+              <span className="mr-2 text-amber-600">
+                <Plus size={16} />
+              </span>
+              {sponsor.name}
+            </div>
+          ))}
+        {sponsors.filter(s =>
+          !selectedSponsors.some(sel => sel.id === s.id) &&
+          s.name.toLowerCase().includes(newSponsorInput.toLowerCase())
+        ).length === 0 && (
+          <div className="p-2 text-sm text-gray-500">No matching sponsors found</div>
+        )}
+      </div>
+    )}
+  </div>
+</div>
+          {/* Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
