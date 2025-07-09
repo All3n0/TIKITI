@@ -71,7 +71,7 @@ export default function VenuesPage() {
                 <span className="font-medium">Capacity:</span>
                 <span>{v.capacity?.toLocaleString() || 'N/A'}</span>
               </div>
-              <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+              {/* <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => { setEditing(v); setModalOpen(true); }}
                   className="text-amber-600 hover:text-amber-700 flex items-center gap-1 text-sm font-medium"
@@ -84,7 +84,7 @@ export default function VenuesPage() {
                 >
                   <Trash2 size={16} /> Delete
                 </button>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>
