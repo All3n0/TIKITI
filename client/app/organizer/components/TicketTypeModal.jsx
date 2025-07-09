@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, 
+  X, 
+  Ticket, 
+  Tag, 
+  Hash, 
+  Clipboard,
+  Clock,
+  CheckCircle,
+  CalendarCheck,
+  CalendarX,
+} from 'lucide-react';
 
 export default function TicketTypeModal({
   open,
@@ -52,10 +63,9 @@ export default function TicketTypeModal({
     }
   }, [organiserId]);
 
- const formatDateForInput = (dateString) => {
+  const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    // Convert to local datetime string in format YYYY-MM-DDTHH:MM
     const pad = (num) => num.toString().padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
@@ -71,55 +81,52 @@ export default function TicketTypeModal({
     setIsActive(true);
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  // Helper function to format date for backend
-  const formatDateForBackend = (dateString) => {
-    if (!dateString) return null;
+    const formatDateForBackend = (dateString) => {
+      if (!dateString) return null;
+      try {
+        const date = new Date(dateString);
+        const pad = (num) => num.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+      } catch (err) {
+        console.error('Error formatting date:', err);
+        return null;
+      }
+    };
+
+    const ticketTypeData = {
+      name,
+      price: parseFloat(price),
+      quantity_available: parseInt(quantityAvailable),
+      description,
+      event_id: parseInt(eventId),
+      sales_start: formatDateForBackend(salesStart),
+      sales_end: formatDateForBackend(salesEnd),
+      is_active: isActive,
+    };
+
     try {
-      // Create date object and format as YYYY-MM-DDTHH:MM:SS
-      const date = new Date(dateString);
-      const pad = (num) => num.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+      if (editingTicketType) {
+        await axios.patch(
+          `http://localhost:5557/ticket-types/${editingTicketType.id}`,
+          ticketTypeData
+        );
+      } else {
+        await axios.post('http://localhost:5557/ticket-types', ticketTypeData);
+      }
+      onSuccess();
+      onClose();
     } catch (err) {
-      console.error('Error formatting date:', err);
-      return null;
+      console.error('Error saving ticket type:', err);
+      alert(`Error saving ticket type: ${err.response?.data?.error || err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const ticketTypeData = {
-    name,
-    price: parseFloat(price),
-    quantity_available: parseInt(quantityAvailable),
-    description,
-    event_id: parseInt(eventId),
-    sales_start: formatDateForBackend(salesStart),
-    sales_end: formatDateForBackend(salesEnd),
-    is_active: isActive,
-  };
-
-  console.log('Submitting:', ticketTypeData); // For debugging
-
-  try {
-    if (editingTicketType) {
-      await axios.patch(
-        `http://localhost:5557/ticket-types/${editingTicketType.id}`,
-        ticketTypeData
-      );
-    } else {
-      await axios.post('http://localhost:5557/ticket-types', ticketTypeData);
-    }
-    onSuccess();
-    onClose();
-  } catch (err) {
-    console.error('Error saving ticket type:', err);
-    alert(`Error saving ticket type: ${err.response?.data?.error || err.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
   if (!open) return null;
 
   return (
@@ -132,13 +139,19 @@ export default function TicketTypeModal({
           <X className="w-5 h-5" />
         </button>
         
-        <h2 className="text-xl font-bold mb-4">
-          {editingTicketType ? 'Edit Ticket Type' : 'Create New Ticket Type'}
-        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <Ticket className="w-6 h-6 text-amber-600" />
+          <h2 className="text-xl font-bold">
+            {editingTicketType ? 'Edit Ticket Type' : 'Create New Ticket Type'}
+          </h2>
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+              <Tag className="w-4 h-4" />
+              Name
+            </label>
             <input
               type="text"
               value={name}
@@ -147,34 +160,39 @@ export default function TicketTypeModal({
               required
             />
           </div>
+<label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+              <CalendarIcon className="w-4 h-4" />
+              Event
+            </label>
+          <select
+  value={eventId}
+  disabled
+  className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+>
+  <option value="">Select Event</option>
+  {events.map((event) => (
+    <option key={event.id} value={event.id}>
+      {event.title}
+    </option>
+  ))}
+</select>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Event</label>
-            <select
-              value={eventId}
-              onChange={(e) => setEventId(e.target.value)}
-              className="w-full p-2 border rounded-md"
-              required
-            >
-              <option value="">Select Event</option>
-              {events.map((event) => (
-                <option key={event.id} value={event.id}>
-                  {event.title}
-                </option>
-              ))}
-            </select>
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+              <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+                <span className="text-amber-600">KSh</span>
+                Price
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">KSh</span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  <Tag className="w-4 h-4" />
+                </span>
                 <input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full p-2 pl-12 border rounded-md"
+                  className="w-full p-2 pl-10 border rounded-md"
                   min="0"
                   step="0.01"
                   required
@@ -183,7 +201,10 @@ export default function TicketTypeModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+              <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+                <Hash className="w-4 h-4" />
+                Quantity
+              </label>
               <input
                 type="number"
                 value={quantityAvailable}
@@ -197,7 +218,10 @@ export default function TicketTypeModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sales Start</label>
+              <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+                <CalendarCheck className="w-4 h-4 text-green-600" />
+                Sales Start
+              </label>
               <div className="relative">
                 <input
                   type="datetime-local"
@@ -210,7 +234,10 @@ export default function TicketTypeModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sales End</label>
+              <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+                <CalendarX className="w-4 h-4 text-red-600" />
+                Sales End
+              </label>
               <div className="relative">
                 <input
                   type="datetime-local"
@@ -224,7 +251,10 @@ export default function TicketTypeModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+              <Clipboard className="w-4 h-4" />
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -241,7 +271,8 @@ export default function TicketTypeModal({
               onChange={(e) => setIsActive(e.target.checked)}
               className="mr-2"
             />
-            <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+            <label htmlFor="isActive" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <CheckCircle className="w-4 h-4 text-green-600" />
               Active
             </label>
           </div>
@@ -250,17 +281,28 @@ export default function TicketTypeModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-md hover:bg-gray-100"
+              className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-100"
               disabled={loading}
             >
+              <X className="w-4 h-4" />
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? (
+                <>
+                  <Clock className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Save
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -35,14 +35,15 @@ export default function SponsorsPage() {
   };
 
   return (
-    <section className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-amber-700">Sponsors</h1>
+    <section className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-amber-700">Sponsors</h1>
         <button 
           onClick={() => { setEditing(null); setModalOpen(true); }} 
-          className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors w-full sm:w-auto justify-center"
         >
-          <Plus size={18} /> Add Sponsor
+          <Plus size={18} /> 
+          <span className="whitespace-nowrap">Add Sponsor</span>
         </button>
       </div>
 
@@ -51,8 +52,8 @@ export default function SponsorsPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
         </div>
       ) : sponsors.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
-          <p className="text-gray-500 text-lg mb-4">No sponsors found</p>
+        <div className="text-center py-8 sm:py-12 bg-white rounded-lg shadow-sm border border-gray-100">
+          <p className="text-gray-500 text-base sm:text-lg mb-4">No sponsors found</p>
           <button
             onClick={() => { setEditing(null); setModalOpen(true); }}
             className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg"
@@ -61,18 +62,18 @@ export default function SponsorsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {sponsors.map(s => (
-            <div key={s.id} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-              <div className="flex items-start gap-4">
+            <div key={s.id} className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                 {s.logo && (
                   <img 
                     src={s.logo} 
                     alt={`${s.name} logo`} 
-                    className="w-16 h-16 object-contain rounded-md"
+                    className="w-16 h-16 object-contain rounded-md mx-auto sm:mx-0"
                   />
                 )}
-                <div>
+                <div className="flex-1 text-center sm:text-left">
                   <h2 className="font-bold text-lg text-gray-800 mb-1">{s.name}</h2>
                   {s.sponsorship_level && (
                     <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded mb-2">
@@ -84,7 +85,7 @@ export default function SponsorsPage() {
                       href={s.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm block mb-1"
+                      className="text-blue-600 hover:underline text-sm block mb-1 truncate"
                     >
                       {s.website.replace(/^https?:\/\//, '')}
                     </a>
@@ -92,7 +93,7 @@ export default function SponsorsPage() {
                   {s.contact_email && (
                     <a 
                       href={`mailto:${s.contact_email}`}
-                      className="text-gray-600 text-sm block"
+                      className="text-gray-600 text-sm block truncate"
                     >
                       {s.contact_email}
                     </a>

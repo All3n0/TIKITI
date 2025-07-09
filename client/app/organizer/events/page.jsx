@@ -65,12 +65,12 @@ export default function EventsPage() {
   }
 
   return (
-    <section className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <section className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-amber-700">My Events</h1>
         <button
           onClick={openCreationModal}
-          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+          className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md w-full sm:w-auto justify-center"
         >
           <Plus className="w-5 h-5" />
           <span>Create Event</span>
@@ -78,7 +78,7 @@ export default function EventsPage() {
       </div>
 
       {events.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-8 sm:py-12">
           <p className="text-gray-500 text-lg">No events yet.</p>
           <button
             onClick={openCreationModal}
@@ -88,13 +88,13 @@ export default function EventsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {events.map((event) => (
             <div
               key={event.id}
               className="bg-white rounded-xl shadow-md hover:shadow-lg border border-gray-200 overflow-hidden transition-all flex flex-col"
             >
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-40 sm:h-48 overflow-hidden">
                 <img
                   src={event.image || '/placeholder-event.jpg'}
                   alt={event.title}
@@ -108,12 +108,12 @@ export default function EventsPage() {
               <div className="p-4 flex-1 flex flex-col">
                 <h2 className="font-bold text-lg text-gray-800 mb-2">{event.title}</h2>
 
-                <div className="space-y-3 mb-4">
+                <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
                   <div className="flex items-start gap-2">
-                    <Calendar className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-amber-600 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Date & Time</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">Date & Time</p>
+                      <p className="text-xs sm:text-sm text-gray-600">
                         {new Date(event.start_datetime).toLocaleDateString('en-US', {
                           weekday: 'short',
                           month: 'short',
@@ -135,10 +135,10 @@ export default function EventsPage() {
 
                   {event.venue && (
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-5 h-5 text-amber-600 mt-0.5" />
+                      <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-amber-600 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Location</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm font-medium text-gray-700">Location</p>
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {event.venue.name}
                           <br />
                           {event.venue.city}, {event.venue.state}
@@ -147,26 +147,25 @@ export default function EventsPage() {
                     </div>
                   )}
 
-                 <div className="flex items-start gap-2">
-  <Users className="w-5 h-5 text-amber-600 mt-0.5" />
-  <div>
-    <p className="text-sm font-medium text-gray-700">Capacity</p>
-    <p className="text-sm text-gray-600">
-      {event.venue?.capacity !== undefined && event.venue?.capacity !== null
-        ? event.venue.capacity.toLocaleString()
-        : 'Unlimited'}
-    </p>
-  </div>
-</div>
-
+                  <div className="flex items-start gap-2">
+                    <Users className="w-4 sm:w-5 h-4 sm:h-5 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">Capacity</p>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {event.venue?.capacity !== undefined && event.venue?.capacity !== null
+                          ? event.venue.capacity.toLocaleString()
+                          : 'Unlimited'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mt-auto pt-4 border-t flex justify-between">
+                <div className="mt-auto pt-3 sm:pt-4 border-t flex justify-between">
                   <Link
                     href={`/organizer/events/${event.id}`}
-                    className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700"
+                    className="flex items-center gap-1 text-xs sm:text-sm text-amber-600 hover:text-amber-700"
                   >
-                    <Ticket className="w-4 h-4" />
+                    <Ticket className="w-3 sm:w-4 h-3 sm:h-4" />
                     View Event
                   </Link>
                 </div>
