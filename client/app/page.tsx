@@ -12,7 +12,8 @@ import {
   Users,
   Sparkles
 } from 'lucide-react';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
+
 
 function getCategoryIcon(name: string) {
   const iconMap: Record<string, JSX.Element> = {
@@ -57,7 +58,7 @@ export default function Home() {
   const [featuredOrganizers, setFeaturedOrganizers] = useState<any[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<any[]>([]);
   const [showAllEvents, setShowAllEvents] = useState(false);
-
+  const router = useRouter();
   useEffect(() => {
     async function fetchData() {
       const [events, organizers, counts] = await Promise.all([
