@@ -149,18 +149,44 @@ export default function OrganizerEventDetails() {
               ))}
             </div>
           </div>
-          {event.sponsors && event.sponsors.length > 0 && (
-  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
-    <h2 className="font-semibold text-gray-800 mb-3 flex items-center">
-      <Handshake className="text-amber-600 mr-2" size={18} />
-      Sponsors
-    </h2>
-    <div className="flex flex-wrap gap-3">
+{event.sponsors && event.sponsors.length > 0 && (
+  <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200 mb-8 shadow-sm">
+    <div className="flex items-center mb-4">
+      <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+      <h2 className="text-xl font-bold text-gray-800">Event Sponsors</h2>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {event.sponsors.map(s => (
-        <div key={s.id} className="bg-white p-3 rounded-lg shadow-sm border text-sm text-gray-700">
-          <p className="font-semibold text-amber-700">{s.name}</p>
-          {s.sponsorship_level && <p>Level: {s.sponsorship_level}</p>}
-          {s.website && <p className="text-blue-600"><a href={s.website} target="_blank">Website</a></p>}
+        <div key={s.id} className="bg-white p-4 rounded-lg border border-amber-100 hover:border-amber-300 transition-all shadow-sm hover:shadow-md">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <div>
+              <h3 className="font-bold text-lg text-amber-700">{s.name}</h3>
+              {s.sponsorship_level && (
+                <p className="text-sm text-gray-600 mb-2">
+                  <span className="font-medium">Level:</span> {s.sponsorship_level}
+                </p>
+              )}
+              {s.website && (
+                <a 
+                  href={s.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-amber-600 hover:text-amber-800 text-sm font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Visit Website
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>
