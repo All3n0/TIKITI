@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { User, Calendar, MapPin, Clock, ArrowLeft } from 'lucide-react';
+import { User, Calendar, MapPin, Clock, ArrowLeft,Lock,CheckCircle,ArrowRight} from 'lucide-react';
 import Link from 'next/link';
 
 export default function OrganizerProfile() {
@@ -86,10 +86,10 @@ export default function OrganizerProfile() {
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-bold mb-2 underline">{organizer.name}</h1>
-              <p className="text-amber-100 px-2 border-2 bg-yellow-200 w-fit text-amber-600 rounded-md">
-                {organizer.speciality || organizer.specialty || 'Event Organizer'}
-              </p>
+              <h1 className="text-3xl font-bold mb-2 underline underline-offset-8 capitalize">{organizer.name}</h1>
+              <p className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 border border-amber-200">
+  {organizer.speciality || organizer.specialty || 'Event Organizer'}
+</p>
             </div>
           </div>
         </div>
@@ -184,57 +184,100 @@ export default function OrganizerProfile() {
           </div>
 
           {/* Right Column - Upcoming Events */}
-          <div className="lg:col-span-2">
-            <h2 className="text-xl font-bold text-amber-700 mb-6">Upcoming Events</h2>
-            
-            {organizer.upcoming_events?.length > 0 ? (
-              <div className="space-y-6">
-                {organizer.upcoming_events.map(event => (
-                  <div key={event.id} className="bg-white p-6 rounded-xl shadow-sm border border-amber-100 hover:shadow-md transition">
-                    <h3 className="text-lg font-bold text-amber-700 mb-2">{event.title}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex items-center text-gray-600">
-                        <Calendar className="mr-2 text-amber-600" size={18} />
-                        <span>{new Date(event.start_datetime).toLocaleDateString('en-US', { 
-                          month: 'long', 
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <MapPin className="mr-2 text-amber-600" size={18} />
-                        <span>{event.venue?.city}, {event.venue?.state}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Clock className="mr-2 text-amber-600" size={18} />
-                        <span>{new Date(event.start_datetime).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })} - {new Date(event.end_datetime).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-amber-100">
-                      <span className="text-gray-500">Capacity: </span>
-                      <span className="text-amber-600 font-medium">{event.capacity?.toLocaleString()}</span>
-                    </div>
-                    <button 
-                      onClick={() => router.push(`/events/${event.id}`)}
-                      className="mt-4 text-amber-600 hover:text-amber-700 font-medium"
-                    >
-                      View Event Details →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white p-8 rounded-xl shadow-sm border border-amber-100 text-center">
-                <p className="text-gray-600">No upcoming events scheduled</p>
-              </div>
-            )}
+<div className="lg:col-span-2">
+  <h2 className="text-xl font-bold text-amber-700 mb-6">Upcoming Events</h2>
+  
+  {organizer.upcoming_events?.length > 0 ? (
+    <div className="space-y-6">
+      {organizer.upcoming_events.map(event => (
+        <div key={event.id} className="bg-white p-6 rounded-xl shadow-sm border border-amber-100 hover:shadow-md transition">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-bold text-amber-700 mb-2">{event.title}</h3>
+            {/* Event Status Badge */}
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              event.status === 'approved' 
+                ? 'bg-green-100 text-green-800' 
+                : event.status === 'pending'
+                  ? 'bg-amber-100 text-amber-800'
+                  : 'bg-red-100 text-red-800'
+            }`}>
+              {event.status === 'approved' ? (
+                <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+              ) : event.status === 'pending' ? (
+                <Clock className="mr-1.5 h-3.5 w-3.5" />
+              ) : (
+                <XCircle className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {event.status}
+            </span>
           </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center text-gray-600">
+              <Calendar className="mr-2 text-amber-600" size={18} />
+              <span>{new Date(event.start_datetime).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}</span>
+            </div>
+            <div className="flex items-center text-gray-600">
+              <MapPin className="mr-2 text-amber-600" size={18} />
+              <span>{event.venue?.city || 'Online'}, {event.venue?.state || ''}</span>
+            </div>
+            <div className="flex items-center text-gray-600">
+              <Clock className="mr-2 text-amber-600" size={18} />
+              <span>{new Date(event.start_datetime).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })} - {new Date(event.end_datetime).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</span>
+            </div>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-amber-100 flex justify-between items-center">
+            <div>
+              <span className="text-gray-500">Capacity: </span>
+              <span className="text-amber-600 font-medium">
+                {event.capacity ? event.capacity.toLocaleString() : 'Unlimited'}
+              </span>
+            </div>
+            
+            {/* View Event Button with Status Logic */}
+            <button 
+              onClick={() => event.status === 'approved' && router.push(`/events/${event.id}`)}
+              disabled={event.status !== 'approved'}
+              className={`inline-flex items-center font-medium ${
+                event.status === 'approved'
+                  ? 'text-amber-600 hover:text-amber-700'
+                  : 'text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {event.status === 'approved' ? (
+                <>
+                  View Event Details
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  {event.status === 'pending' ? 'Pending Approval' : 'Not Available'}
+                  <Lock className="ml-1.5 h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="bg-white p-8 rounded-xl shadow-sm border border-amber-100 text-center">
+      <Calendar className="mx-auto h-10 w-10 text-gray-400" />
+      <p className="mt-2 text-gray-600">No upcoming events scheduled</p>
+    </div>
+  )}
+</div>
         </div>
       </section>
     </div>
