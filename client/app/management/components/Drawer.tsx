@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
 import {
-  Home, CalendarDays, Ticket, Users,
+  Home, CalendarDays, CreditCard, Users,
   LogOut, X, MapPinHouse,
+  
 } from 'lucide-react';
 
 const navItems = [
   { href: '/management/dashboard', icon: <Home size={18} />, label: 'Dashboard' },
   { href: '/management/events', icon: <CalendarDays size={18} />, label: 'Events' },
-  { href: '/management/tickets', icon: <Ticket size={18} />, label: 'Ticket Types' },
+  { href: '/management/sponsors', icon: <CreditCard size={18} />, label: 'Sponsors' },
   { href: '/management/organizers', icon: <Users size={18} />, label: 'Organizers' },
   { href: '/management/venues', icon: <MapPinHouse size={18} />, label: 'Venues' },
 ];

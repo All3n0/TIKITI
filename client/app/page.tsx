@@ -220,7 +220,7 @@ export default function Home() {
     {/* Organizer Image */}
     <div className="relative h-40 w-full">
       <img
-        src={organizer.image || '/placeholder.jpg'}
+        src={organizer.logo || '/placeholder.jpg'}
         alt={organizer.name}
         className="w-full h-full object-cover"
       />
