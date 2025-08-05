@@ -3,6 +3,39 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, Link } from 'lucide-react';
 import axios from 'axios';
+interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  capacity?: number;
+}
+interface Event {
+  id: string;
+  title: string;
+  description:string;
+  venue_name: string;
+  start_datetime: string;
+  end_datetime: string;
+  image: string;
+  category: string;
+  capacity: number;
+  organizer_name: string;
+  
+}
+interface organizer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  logo: string;
+  speciality: string;
+  events: Event[];
+}
+interface StatCardProps{
+  title: string;
+  value: number;}
 
 export default function AdminDashboard() {
   const [manager, setManager] = useState(null);
@@ -12,9 +45,9 @@ export default function AdminDashboard() {
     pendingEvents: 0,
     pendingVenues: 0
   });
-  const [pendingEvents, setPendingEvents] = useState([]);
-  const [pendingVenues, setPendingVenues] = useState([]);
-  const [organizers, setOrganizers] = useState([]);
+  const [pendingEvents, setPendingEvents] = useState<Event[]>([]);
+  const [pendingVenues, setPendingVenues] = useState<Venue[]>([]);
+  const [organizers, setOrganizers] = useState<organizer[]>([]);
   const [activeTab, setActiveTab] = useState('events');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -91,7 +124,7 @@ export default function AdminDashboard() {
     });
     router.push('/management/login');
   };
-const handleApprove = async (id) => {
+const handleApprove = async (id: any) => {
   try {
     const res = await fetch(`http://localhost:5557/management/venues/${id}/approve`, {
       method: 'PATCH',
@@ -118,7 +151,7 @@ const handleApprove = async (id) => {
   }
 };
 
-const handleReject = async (id) => {
+const handleReject = async (id: any) => {
   try {
     const res = await fetch(`http://localhost:5557/management/venues/${id}/reject`, {
       method: 'PATCH',
@@ -144,7 +177,7 @@ const handleReject = async (id) => {
     alert('Failed to reject venue. Please try again.');
   }
 };
-  const handleApproveEvent = async (eventId) => {
+  const handleApproveEvent = async (eventId: any) => {
     try {
       const res = await fetch(`http://localhost:5557/management/events/${eventId}/approve`, {
         method: 'POST',
@@ -171,7 +204,7 @@ const handleReject = async (id) => {
     }
   };
 
-  const handleRejectEvent = async (eventId) => {
+  const handleRejectEvent = async (eventId: any) => {
     try {
       const res = await fetch(`http://localhost:5557/management/events/${eventId}/reject`, {
         method: 'POST',
@@ -540,7 +573,7 @@ const handleReject = async (id) => {
   );
 }
 
-function StatCard({ title, value }) {
+function StatCard({ title, value }: StatCardProps) {
   // Define icons for each card type
   const getIcon = () => {
     switch(title) {

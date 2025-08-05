@@ -59,7 +59,7 @@ export default function EventsPage() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:5557/events?search=${search}&category=${category}`);
+      const res = await fetch(`https://servertikiti-production.up.railway.app/events?search=${search}&category=${category}`);
       const data = await res.json();
       setEvents(data);
     } catch (err) {

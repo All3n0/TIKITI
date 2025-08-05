@@ -32,7 +32,7 @@ export default function TicketTypeModal({
   const [isActive, setIsActive] = useState(true);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [eventError, setEventError] = useState('');
   useEffect(() => {
     if (editingTicketType) {
       setName(editingTicketType.name);
@@ -69,7 +69,12 @@ export default function TicketTypeModal({
     const pad = (num) => num.toString().padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
-
+  const formatDateForBackend = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const pad = (num) => num.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+};
   const resetForm = () => {
     setName('');
     setPrice('');
@@ -82,50 +87,45 @@ export default function TicketTypeModal({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  
+  // Validate event selection
+  if (!eventId) {
+    setEventError('Please select an event');
+    return;
+  }
+  
+  setLoading(true);
 
-    const formatDateForBackend = (dateString) => {
-      if (!dateString) return null;
-      try {
-        const date = new Date(dateString);
-        const pad = (num) => num.toString().padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-      } catch (err) {
-        console.error('Error formatting date:', err);
-        return null;
-      }
-    };
-
-    const ticketTypeData = {
-      name,
-      price: parseFloat(price),
-      quantity_available: parseInt(quantityAvailable),
-      description,
-      event_id: parseInt(eventId),
-      sales_start: formatDateForBackend(salesStart),
-      sales_end: formatDateForBackend(salesEnd),
-      is_active: isActive,
-    };
-
-    try {
-      if (editingTicketType) {
-        await axios.patch(
-          `http://localhost:5557/ticket-types/${editingTicketType.id}`,
-          ticketTypeData
-        );
-      } else {
-        await axios.post('http://localhost:5557/ticket-types', ticketTypeData);
-      }
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.error('Error saving ticket type:', err);
-      alert(`Error saving ticket type: ${err.response?.data?.error || err.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const ticketTypeData = {
+    name,
+    price: parseFloat(price),
+    quantity_available: parseInt(quantityAvailable),
+    description,
+    event_id: parseInt(eventId), // Ensure this is a number
+    sales_start: formatDateForBackend(salesStart),
+    sales_end: formatDateForBackend(salesEnd),
+    is_active: isActive,
   };
+
+  try {
+    if (editingTicketType) {
+      await axios.patch(
+        `http://localhost:5557/ticket-types/${editingTicketType.id}`,
+        ticketTypeData
+      );
+    } else {
+      await axios.post('http://localhost:5557/ticket-types', ticketTypeData);
+    }
+    onSuccess();
+    onClose();
+  } catch (err) {
+    console.error('Error saving ticket type:', err);
+    alert(`Error saving ticket type: ${err.response?.data?.error || err.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!open) return null;
 
@@ -160,24 +160,29 @@ export default function TicketTypeModal({
               required
             />
           </div>
-<label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
-              <CalendarIcon className="w-4 h-4" />
-              Event
-            </label>
-          <select
-  value={eventId}
-  disabled
-  className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
->
-  <option value="">Select Event</option>
-  {events.map((event) => (
-    <option key={event.id} value={event.id}>
-      {event.title}
-    </option>
-  ))}
-</select>
-
-
+<div>
+  <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">
+    <CalendarIcon className="w-4 h-4" />
+    Event
+  </label>
+  <select
+    value={eventId}
+    onChange={(e) => {
+      setEventId(e.target.value);
+      setEventError('');
+    }}
+    className="w-full p-2 border rounded-md"
+    required
+  >
+    <option value="">Select Event</option>
+    {events.map((event) => (
+      <option key={event.id} value={event.id}>
+        {event.title}
+      </option>
+    ))}
+  </select>
+  {eventError && <p className="text-red-500 text-sm mt-1">{eventError}</p>}
+</div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-amber-700 font-semibold mb-1">

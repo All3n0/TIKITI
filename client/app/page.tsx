@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSX } from 'react';
 import {
   Music,
   CalendarCheck,
@@ -30,7 +30,7 @@ function getCategoryIcon(name: string) {
 []
 }
 async function getFeaturedEvents() {
-  const res = await fetch('http://localhost:5557/featured-events');
+  const res = await fetch('https://servertikiti-production.up.railway.app/featured-events');
   if (!res.ok) {
     throw new Error('Failed to fetch featured events');
   }
@@ -38,7 +38,7 @@ async function getFeaturedEvents() {
 }
 
 async function getFeaturedOrganizers() {
-  const res = await fetch('http://localhost:5557/organizers/featured/summary');
+  const res = await fetch('https://servertikiti-production.up.railway.app/organizers/featured/summary');
   if (!res.ok) {
     throw new Error('Failed to fetch featured organizers');
   }
@@ -46,7 +46,7 @@ async function getFeaturedOrganizers() {
 }
 
 async function getEventCounts() {
-  const res = await fetch('http://localhost:5557/events/counts');
+  const res = await fetch('https://servertikiti-production.up.railway.app/events/counts');
   if (!res.ok) {
     throw new Error('Failed to fetch event counts');
   }

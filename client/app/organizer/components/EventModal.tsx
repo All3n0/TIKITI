@@ -19,8 +19,41 @@ import {
   Utensils
 } from 'lucide-react';
 import axios from 'axios';
+interface Sponsor {
+  id: string;
+  name: string;
+  sponsorship_level?: string;
+}
 
-export default function EventModal({ open, onClose, editingEvent, onSuccess, organiserId }) {
+interface Venue {
+  id: string;
+  name: string;
+  city: string;
+}
+
+interface Event {
+  id?: string;
+  title: string;
+  description: string;
+  venue_id: string;
+  start_datetime: string;
+  end_datetime: string;
+  image: string;
+  category: string;
+  capacity: number;
+  sponsors?: Sponsor[];
+}
+
+// Define props for the EventModal component
+interface EventModalProps {
+  open: boolean;
+  onClose: () => void;
+  editingEvent?: Event | null;
+  onSuccess: () => void;
+  organiserId: string;
+}
+
+export default function EventModal({ open, onClose, editingEvent, onSuccess, organiserId }: EventModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -32,10 +65,10 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
     capacity: 100
   });
 
-  const [venues, setVenues] = useState([]);
-  const [sponsors, setSponsors] = useState([]);
-  const [selectedSponsors, setSelectedSponsors] = useState([]);
-  const [selectedSponsorIds, setSelectedSponsorIds] = useState([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [selectedSponsors, setSelectedSponsors] = useState<Sponsor[]>([]);
+  const [selectedSponsorIds, setSelectedSponsorIds] = useState<string[]>([]);
   const [newSponsorInput, setNewSponsorInput] = useState('');
   const [loadingVenues, setLoadingVenues] = useState(true);
 
@@ -97,18 +130,18 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
     fetchSponsors();
   }, []);
 
-  const handleAddSponsor = (sponsor) => {
+  const handleAddSponsor = (sponsor: Sponsor) => {
     setSelectedSponsors(prev => [...prev, sponsor]);
     setSelectedSponsorIds(prev => [...prev, sponsor.id]);
     setNewSponsorInput('');
   };
 
-  const handleRemoveSponsor = (id) => {
+  const handleRemoveSponsor = (id: string) => {
     setSelectedSponsors(prev => prev.filter(s => s.id !== id));
     setSelectedSponsorIds(prev => prev.filter(sid => sid !== id));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const payload = {
@@ -250,7 +283,7 @@ export default function EventModal({ open, onClose, editingEvent, onSuccess, org
                 min="1"
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
                 value={formData.capacity}
-                onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
               />
             </div>
           </div>

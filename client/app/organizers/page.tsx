@@ -3,9 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from 'lucide-react';
-
+interface Organizer {
+  id: string;
+  name: string;
+  avatar?: string;
+  specialty: string;
+  eventsCount: number;
+}
 export default function OrganizersPage() {
-  const [organizers, setOrganizers] = useState([]);
+  const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [search, setSearch] = useState('');
   const [minEvents, setMinEvents] = useState(0);
   const router = useRouter();

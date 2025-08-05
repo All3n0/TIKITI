@@ -3,7 +3,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
+import { Eye, EyeOff } from 'lucide-react';
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -11,7 +11,7 @@ export default function LoginPage() {
     password: ''
   });
   const [error, setError] = useState('');
-
+  const [showPassword, setShowPassword] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -77,29 +77,40 @@ export default function LoginPage() {
       {/* Right Panel - Form */}
       <div className="flex-1 bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold mb-8 text-gray-800">Login</h2>
+          <h2 className="text-3xl font-bold mb-8 text-amber-600 underline underline-offset-8">Login</h2>
           {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Email</label>
+              <label className="block mb-2 font-semibold text-amber-600">Email</label>
               <input
                 type="email"
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-black"
+                className="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-black"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-black"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
+  <label className="block mb-2 font-semibold text-amber-600">Password</label>
+  <div className="relative">
+    <input
+      type={showPassword ? 'text' : 'password'}
+      required
+      className="w-full p-3 pr-10 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-black"
+      value={formData.password}
+      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword((prev) => !prev)}
+      className="absolute right-3 top-3 text-gray-600 hover:text-amber-600"
+      aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+    </button>
+  </div>
+</div>
+
             <button
               type="submit"
               className="w-full btn btn-outline border border-amber-600 text-amber-600 py-3.5 rounded-lg hover:bg-amber-700 hover:text-white transition-colors font-medium text-lg shadow hover:shadow-md"
