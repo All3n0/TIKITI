@@ -12,7 +12,7 @@ export default function Navbar({
   const [manager, setManager] = useState<any>(null);
 
   useEffect(() => {
-    fetch('http://localhost:5557/management/session', {
+    fetch('https://servertikiti-production.up.railway.app/management/session', {
       credentials: 'include',
     })
       .then(res => res.json())

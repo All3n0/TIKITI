@@ -16,7 +16,7 @@ export default function EventsPage() {
 
   const fetchEvents = async (id) => {
     try {
-      const res = await axios.get(`http://localhost:5557/organiser/${id}/events`);
+      const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/events`);
       setEvents(res.data);
     } catch (err) {
       console.error('Error fetching events:', err);
@@ -26,7 +26,7 @@ export default function EventsPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await fetch('http://localhost:5557/auth/session', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
           credentials: 'include',
         });
 

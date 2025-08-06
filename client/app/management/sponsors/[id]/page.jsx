@@ -27,7 +27,7 @@ export default function SponsorDetailsPage({ params }) {
   useEffect(() => {
     const fetchSponsor = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/sponsors/${id}`, {
+        const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
           credentials: 'include',
         });
         const data = await res.json();
@@ -44,7 +44,7 @@ export default function SponsorDetailsPage({ params }) {
   const handleUpdate = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5557/sponsors/${id}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -68,7 +68,7 @@ export default function SponsorDetailsPage({ params }) {
   const handleDelete = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5557/sponsors/${id}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });

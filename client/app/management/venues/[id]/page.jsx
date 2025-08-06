@@ -17,7 +17,7 @@ export default function VenueDetailsPage({ params }) {
   useEffect(() => {
     const fetchVenue = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/management/venues/${id}`, {
+        const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}`, {
           credentials: 'include',
         });
         if (!res.ok) return router.push('/management/login');
@@ -38,7 +38,7 @@ export default function VenueDetailsPage({ params }) {
   const handleDelete = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5557/venues/${id}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -62,7 +62,7 @@ export default function VenueDetailsPage({ params }) {
   const handleStatusChange = async (newStatus) => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5557/management/venues/${id}/${newStatus}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/${newStatus}`, {
         method: 'PATCH',
         credentials: 'include',
       });
@@ -85,7 +85,7 @@ export default function VenueDetailsPage({ params }) {
   const handleUpdate = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:5557/venues/${id}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

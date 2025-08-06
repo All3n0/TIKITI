@@ -17,7 +17,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/auth/session', { withCredentials: true });
+        const res = await axios.get('https://servertikiti-production.up.railway.app//auth/session', { withCredentials: true });
         if (res.data) setUser(res.data);
       } catch (err) {
         console.error('Error fetching user', err);
@@ -30,7 +30,7 @@ export default function ProfilePage() {
     if (!user) return;
     const fetchOrders = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/profile/tickets', { withCredentials: true });
+        const res = await axios.get('https://servertikiti-production.up.railway.app//profile/tickets', { withCredentials: true });
         setOrders(res.data);
       } catch (err) {
         console.error('Error fetching tickets:', err);
@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5557/auth/logout', {}, { withCredentials: true });
+      await axios.post('https://servertikiti-production.up.railway.app//auth/logout', {}, { withCredentials: true });
       router.push('/');
     } catch (err) {
       console.error('Logout failed:', err);
@@ -89,7 +89,7 @@ export default function ProfilePage() {
               <button
                 onClick={async () => {
                   try {
-                    await axios.post('http://localhost:5557/auth/switch-to-organizer', {}, { withCredentials: true });
+                    await axios.post('https://servertikiti-production.up.railway.app//auth/switch-to-organizer', {}, { withCredentials: true });
                     router.push('/login');
                   } catch (err) {
                     console.error('Switch failed:', err);

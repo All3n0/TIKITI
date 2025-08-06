@@ -14,7 +14,7 @@ export default function EventDetailsPage({ params }) {
   useEffect(() => {
     const fetchTicketSummary = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/events/${eventId}/tickets-summary`);
+        const res = await fetch(`https://servertikiti-production.up.railway.app/events/${eventId}/tickets-summary`);
         if (res.ok) {
           const data = await res.json();
           setTicketSummary(data);
@@ -27,7 +27,7 @@ export default function EventDetailsPage({ params }) {
 
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/management/events/${eventId}`, {
+        const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}`, {
           credentials: "include",
         });
 
@@ -51,7 +51,7 @@ export default function EventDetailsPage({ params }) {
 
   const handleApprove = async () => {
     try {
-      const res = await fetch(`http://localhost:5557/management/events/${eventId}/approve`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
         method: "POST",
         credentials: "include",
       });
@@ -66,7 +66,7 @@ export default function EventDetailsPage({ params }) {
 
   const handleReject = async () => {
     try {
-      const res = await fetch(`http://localhost:5557/management/events/${eventId}/reject`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
         method: "POST",
         credentials: "include",
       });
@@ -81,7 +81,7 @@ export default function EventDetailsPage({ params }) {
 
   const fetchOrganizerDetails = async (organizerId) => {
     try {
-      const res = await fetch(`http://localhost:5557/management/organizers/${organizerId}`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
         credentials: "include",
       });
 

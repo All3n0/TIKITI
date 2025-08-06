@@ -14,7 +14,7 @@ export default function OrganizerProfile() {
   useEffect(() => {
     const fetchOrganizer = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/organizers/${id}`);
+        const res = await fetch(`https://servertikiti-production.up.railway.app/organizers/${id}`);
         const data = await res.json();
         // Flatten the response structure
         const flattenedOrganizer = {

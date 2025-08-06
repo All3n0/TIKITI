@@ -22,7 +22,7 @@ export default function EventsManagementPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:5557/management/events', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/management/events', {
           credentials: 'include'
         });
         

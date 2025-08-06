@@ -22,7 +22,7 @@ export default function OrganizersPage() {
 
   const fetchOrganizers = async () => {
     try {
-      const res = await fetch(`http://localhost:5557/organizers?search=${search}&min_events=${minEvents}`);
+      const res = await fetch(`https://servertikiti-production.up.railway.app/organizers?search=${search}&min_events=${minEvents}`);
       const data = await res.json();
       setOrganizers(data);
     } catch (err) {

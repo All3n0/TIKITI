@@ -17,20 +17,20 @@ export default function OrganizerDashboard() {
   useEffect(() => {
     const fetchAllTabs = async () => {
       try {
-        const res = await fetch('http://localhost:5557/auth/session', { credentials: 'include' });
+        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', { credentials: 'include' });
         const user = await res.json();
         if (!user || user.role !== 'organizer') {
           router.push('/login');
           return;
         }
 
-        const eventsRes = await fetch(`http://localhost:5557/organiser/${user.id}/events`);
+        const eventsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/events`);
         setEvents(await eventsRes.json());
 
-        const upcomingRes = await fetch(`http://localhost:5557/organiser/${user.id}/upcoming`);
+        const upcomingRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/upcoming`);
         setUpcoming(await upcomingRes.json());
 
-        const analyticsRes = await fetch(`http://localhost:5557/organiser/${user.id}/analytics`);
+        const analyticsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/analytics`);
         setAnalytics(await analyticsRes.json());
       } catch (err) {
         console.error('Error loading tabs', err);
@@ -43,7 +43,7 @@ export default function OrganizerDashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await fetch('http://localhost:5557/auth/session', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
           credentials: 'include',
         });
         const user = await res.json();
@@ -53,7 +53,7 @@ export default function OrganizerDashboard() {
           return;
         }
 
-        const dashboardRes = await fetch(`http://localhost:5557/organizers/${user.id}/dashboard`);
+        const dashboardRes = await fetch(`https://servertikiti-production.up.railway.app/organizers/${user.id}/dashboard`);
         const dashboardData = await dashboardRes.json();
         setData(dashboardData);
       } catch (err) {

@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
     setError('');
     setMessage('');
     try {
-      const response = await axios.post('http://localhost:5557/auth/forgot-password', {
+      const response = await axios.post('https://servertikiti-production.up.railway.app/auth/forgot-password', {
         email,
         frontend_url: window.location.origin
       });

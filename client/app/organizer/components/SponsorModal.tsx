@@ -37,7 +37,7 @@ export default function SponsorModal({ open, onClose, onSuccess, editing }: {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = editing ? `http://localhost:5557/sponsors/${editing.id}` : 'http://localhost:5557/sponsors';
+      const url = editing ? `https://servertikiti-production.up.railway.app/sponsors/${editing.id}` : 'https://servertikiti-production.up.railway.app/sponsors';
       const method = editing ? axios.patch : axios.post;
       await method(url, form);
       onSuccess();

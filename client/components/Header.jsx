@@ -11,7 +11,7 @@ export default function Header() {
     useEffect(() => {
     const checkLogin = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/auth/session', {
+        const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
           withCredentials: true,
         });
 

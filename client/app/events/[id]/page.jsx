@@ -33,7 +33,7 @@ const [ticketsData, setTicketsData] = useState([]);
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch('http://localhost:5557/auth/session', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
           credentials: 'include',
         });
         const data = await res.json();

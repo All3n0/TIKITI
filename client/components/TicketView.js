@@ -112,7 +112,7 @@ className="bg-black text-white w-full max-w-2xl rounded-lg shadow-2xl flex flex-
         <div className="w-full md:w-1/3 flex flex-col items-center justify-center md:justify-between pt-4 md:pt-0 md:pl-6">
           <div className="bg-white p-2 rounded">
             <img 
-              src={`http://localhost:5557/${ticketData.qr_code_path}`} 
+              src={`https://servertikiti-production.up.railway.app/${ticketData.qr_code_path}`} 
               alt="QR Code" 
               className="w-24 h-24 md:w-32 md:h-32" 
             />

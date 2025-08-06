@@ -14,7 +14,7 @@ export default function ManagementRegisterPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5557/management/register', {
+      const res = await fetch('https://servertikiti-production.up.railway.app/management/register', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

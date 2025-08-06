@@ -44,7 +44,7 @@ const submit = async (e: React.FormEvent) => {
       ...form, 
       capacity: form.capacity ? Number(form.capacity) : null 
     };
-    const url = editing ? `http://localhost:5557/venues/${editing.id}` : 'http://localhost:5557/venues';
+    const url = editing ? `https://servertikiti-production.up.railway.app/venues/${editing.id}` : 'https://servertikiti-production.up.railway.app/venues';
     const method = editing ? axios.patch : axios.post;
     await method(url, payload);
     onSuccess();

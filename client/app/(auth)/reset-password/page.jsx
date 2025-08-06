@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
     setMessage('');
     try {
       const response = await axios.post(
-        `http://localhost:5557/auth/reset-password/${token}`,
+        `https://servertikiti-production.up.railway.app/auth/reset-password/${token}`,
         { password },
         { withCredentials: true }
       );

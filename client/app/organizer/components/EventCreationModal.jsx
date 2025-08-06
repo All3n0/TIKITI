@@ -34,7 +34,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/venues');
+        const res = await axios.get('https://servertikiti-production.up.railway.app/venues');
         setVenues(res.data);
       } catch (err) {
         console.error('Error fetching venues:', err);
@@ -43,7 +43,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
 
     const fetchSponsors = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/sponsors');
+        const res = await axios.get('https://servertikiti-production.up.railway.app/sponsors');
         setSponsors(res.data);
         setFilteredSponsors(res.data);
       } catch (err) {
@@ -113,7 +113,7 @@ export default function EventCreationModal({ open, onClose, onSuccess, organiser
     };
 
     try {
-    const res = await fetch(`http://localhost:5557/organiser/${organiserId}/events`, {
+    const res = await fetch(`https://servertikiti-production.up.railway.app/organiser/${organiserId}/events`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

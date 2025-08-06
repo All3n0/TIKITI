@@ -12,7 +12,7 @@ export default function SponsorsPage() {
 
   const fetch = async () => {
     try {
-      const res = await axios.get('http://localhost:5557/sponsors');
+      const res = await axios.get('https://servertikiti-production.up.railway.app/sponsors');
       setSponsors(res.data);
     } catch (error) {
       console.error('Error fetching sponsors:', error);
@@ -26,7 +26,7 @@ export default function SponsorsPage() {
   const confirmDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this sponsor?')) return;
     try {
-      await axios.delete(`http://localhost:5557/sponsors/${id}`);
+      await axios.delete(`https://servertikiti-production.up.railway.app/sponsors/${id}`);
       fetch();
     } catch (error) {
       console.error('Error deleting sponsor:', error);

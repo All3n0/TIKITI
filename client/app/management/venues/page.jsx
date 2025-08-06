@@ -21,7 +21,7 @@ export default function VenuesPage() {
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        const res = await fetch('http://localhost:5557/management/venues', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/management/venues', {
           credentials: 'include'
         });
 

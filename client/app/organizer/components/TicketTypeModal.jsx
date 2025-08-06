@@ -51,7 +51,7 @@ export default function TicketTypeModal({
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await axios.get(`http://localhost:5557/organiser/${organiserId}/events`);
+        const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${organiserId}/events`);
         setEvents(res.data);
       } catch (err) {
         console.error('Error fetching events:', err);
@@ -111,11 +111,11 @@ export default function TicketTypeModal({
   try {
     if (editingTicketType) {
       await axios.patch(
-        `http://localhost:5557/ticket-types/${editingTicketType.id}`,
+        `https://servertikiti-production.up.railway.app/ticket-types/${editingTicketType.id}`,
         ticketTypeData
       );
     } else {
-      await axios.post('http://localhost:5557/ticket-types', ticketTypeData);
+      await axios.post('https://servertikiti-production.up.railway.app/ticket-types', ticketTypeData);
     }
     onSuccess();
     onClose();

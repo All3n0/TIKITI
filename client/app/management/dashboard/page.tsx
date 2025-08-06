@@ -56,7 +56,7 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         // Check session
-        const sessionRes = await fetch('http://localhost:5557/management/session', {
+        const sessionRes = await fetch('https://servertikiti-production.up.railway.app/management/session', {
           credentials: 'include',
         });
         
@@ -82,10 +82,10 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
   try {
     const [statsRes, eventsRes, venuesRes, orgsRes] = await Promise.all([
-      fetch('http://localhost:5557/management/dashboard/stats', { credentials: 'include' }),
-      fetch('http://localhost:5557/management/events/pending', { credentials: 'include' }),
-      fetch('http://localhost:5557/management/venues/pending', { credentials: 'include' }),
-      fetch('http://localhost:5557/management/organizers', { credentials: 'include' })
+      fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', { credentials: 'include' }),
+      fetch('https://servertikiti-production.up.railway.app/management/events/pending', { credentials: 'include' }),
+      fetch('https://servertikiti-production.up.railway.app/management/venues/pending', { credentials: 'include' }),
+      fetch('https://servertikiti-production.up.railway.app/management/organizers', { credentials: 'include' })
     ]);
 
     const [statsData, eventsData, venuesData, orgsData] = await Promise.all([
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch('http://localhost:5557/management/logout', {
+    await fetch('https://servertikiti-production.up.railway.app/management/logout', {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
   };
 const handleApprove = async (id: any) => {
   try {
-    const res = await fetch(`http://localhost:5557/management/venues/${id}/approve`, {
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/approve`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -153,7 +153,7 @@ const handleApprove = async (id: any) => {
 
 const handleReject = async (id: any) => {
   try {
-    const res = await fetch(`http://localhost:5557/management/venues/${id}/reject`, {
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/reject`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -179,21 +179,21 @@ const handleReject = async (id: any) => {
 };
   const handleApproveEvent = async (eventId: any) => {
     try {
-      const res = await fetch(`http://localhost:5557/management/events/${eventId}/approve`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
         method: 'POST',
         credentials: 'include',
       });
       
       if (res.ok) {
         // Refresh data
-        const eventsRes = await fetch('http://localhost:5557/management/events/pending', {
+        const eventsRes = await fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
           credentials: 'include',
         });
         const eventsData = await eventsRes.json();
         setPendingEvents(eventsData);
         
         // Refresh stats
-        const statsRes = await fetch('http://localhost:5557/management/dashboard/stats', {
+        const statsRes = await fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
           credentials: 'include',
         });
         const statsData = await statsRes.json();
@@ -206,21 +206,21 @@ const handleReject = async (id: any) => {
 
   const handleRejectEvent = async (eventId: any) => {
     try {
-      const res = await fetch(`http://localhost:5557/management/events/${eventId}/reject`, {
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
         method: 'POST',
         credentials: 'include',
       });
       
       if (res.ok) {
         // Refresh data
-        const eventsRes = await fetch('http://localhost:5557/management/events/pending', {
+        const eventsRes = await fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
           credentials: 'include',
         });
         const eventsData = await eventsRes.json();
         setPendingEvents(eventsData);
         
         // Refresh stats
-        const statsRes = await fetch('http://localhost:5557/management/dashboard/stats', {
+        const statsRes = await fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
           credentials: 'include',
         });
         const statsData = await statsRes.json();

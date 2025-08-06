@@ -17,10 +17,10 @@ export default function OrganizerEventDetails() {
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const res = await axios.get(`http://localhost:5557/events/${id}`);
+        const res = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}`);
         setEvent(res.data);
 
-        const statsRes = await axios.get(`http://localhost:5557/events/${id}/stats`);
+        const statsRes = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}/stats`);
         setStats(statsRes.data);
       } catch (err) {
         console.error('Error loading event:', err);
@@ -36,7 +36,7 @@ export default function OrganizerEventDetails() {
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-      await axios.delete(`http://localhost:5557/events/${id}`);
+      await axios.delete(`https://servertikiti-production.up.railway.app/events/${id}`);
       router.push('/organizer/events');
     } catch (err) {
       console.error('Delete failed:', err);
@@ -228,7 +228,7 @@ export default function OrganizerEventDetails() {
         editingEvent={event}
         onSuccess={() => {
           setShowModal(false);
-          axios.get(`http://localhost:5557/events/${id}`).then(res => setEvent(res.data));
+          axios.get(`https://servertikiti-production.up.railway.app/events/${id}`).then(res => setEvent(res.data));
         }}
         organiserId={event.organizer_id}
       />

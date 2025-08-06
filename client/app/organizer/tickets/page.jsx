@@ -17,7 +17,7 @@ export default function TicketTypesPage() {
 
   const fetchTicketTypes = async (id) => {
     try {
-      const res = await axios.get(`http://localhost:5557/organiser/${id}/ticket-types`);
+      const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/ticket-types`);
       setTicketTypes(res.data);
     } catch (err) {
       console.error('Error fetching ticket types:', err);
@@ -27,7 +27,7 @@ export default function TicketTypesPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await fetch('http://localhost:5557/auth/session', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
           credentials: 'include',
         });
 
@@ -70,7 +70,7 @@ export default function TicketTypesPage() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this ticket type?')) return;
     try {
-      await axios.delete(`http://localhost:5557/ticket-types/${id}`);
+      await axios.delete(`https://servertikiti-production.up.railway.app/ticket-types/${id}`);
       await fetchTicketTypes(organiserId);
     } catch (err) {
       console.error('Delete failed:', err);

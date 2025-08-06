@@ -10,7 +10,7 @@ export default function SponsorsPage() {
   useEffect(() => {
     const fetchSponsors = async () => {
       try {
-        const res = await fetch('http://localhost:5557/sponsors', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/sponsors', {
           credentials: 'include',
         });
         const data = await res.json();

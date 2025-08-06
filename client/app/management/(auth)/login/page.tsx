@@ -13,7 +13,7 @@ export default function ManagementLoginPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5557/management/login', {
+      const res = await fetch('https://servertikiti-production.up.railway.app/management/login', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await axios.post('http://localhost:5557/auth/register', formData, {
+      const response = await axios.post('https://servertikiti-production.up.railway.app/auth/register', formData, {
         withCredentials: true,  // Important for cookies
         headers: {
           'Content-Type': 'application/json',

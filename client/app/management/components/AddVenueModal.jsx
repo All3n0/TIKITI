@@ -22,7 +22,7 @@ export default function AddVenueModal({ isOpen, onClose, onVenueAdded }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5557/venues', {
+      const res = await fetch('https://servertikiti-production.up.railway.app/venues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

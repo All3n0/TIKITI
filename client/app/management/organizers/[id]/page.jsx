@@ -20,7 +20,7 @@ export default function OrganizerDetailsPage({ params }) {
   useEffect(() => {
     const fetchOrganizer = async () => {
       try {
-        const res = await fetch(`http://localhost:5557/management/organizers/${organizerId}`, {
+        const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
           credentials: "include",
         });
 
@@ -46,7 +46,7 @@ export default function OrganizerDetailsPage({ params }) {
     setEventsLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:5557/management/organizers/${organizerId}/events?page=${page}`,
+        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/events?page=${page}`,
         { credentials: "include" }
       );
 
@@ -67,7 +67,7 @@ export default function OrganizerDetailsPage({ params }) {
     setSponsorsLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:5557/management/organizers/${organizerId}/sponsors?page=${page}`,
+        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/sponsors?page=${page}`,
         { credentials: "include" }
       );
 

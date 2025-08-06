@@ -12,7 +12,7 @@ export default function VenuesPage() {
 
   const fetch = async () => {
     try {
-      const res = await axios.get('http://localhost:5557/venues');
+      const res = await axios.get('https://servertikiti-production.up.railway.app/venues');
       setVenues(res.data);
     } catch (error) {
       console.error('Error fetching venues:', error);
@@ -26,7 +26,7 @@ export default function VenuesPage() {
   const confirmDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this venue?')) return;
     try {
-      await axios.delete(`http://localhost:5557/venues/${id}`);
+      await axios.delete(`https://servertikiti-production.up.railway.app/venues/${id}`);
       fetch();
     } catch (error) {
       console.error('Error deleting venue:', error);

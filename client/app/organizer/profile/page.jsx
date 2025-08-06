@@ -17,7 +17,7 @@ export default function OrganizerProfilePage() {
   useEffect(() => {
     const fetchOrganizer = async () => {
       try {
-        const res = await axios.get('http://localhost:5557/organizer/profile', {
+        const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
           withCredentials: true,
         });
         setOrganizer(res.data);
@@ -51,7 +51,7 @@ export default function OrganizerProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5557/auth/logout', {}, {
+      await axios.post('https://servertikiti-production.up.railway.app/auth/logout', {}, {
         withCredentials: true,
       });
       toast.success('Logged out successfully');
@@ -66,7 +66,7 @@ export default function OrganizerProfilePage() {
 
     try {
       setIsLoading(true);
-      const res = await axios.patch('http://localhost:5557/organizer/profile', formData, {
+      const res = await axios.patch('https://servertikiti-production.up.railway.app/organizer/profile', formData, {
         withCredentials: true,
       });
       setOrganizer(res.data);

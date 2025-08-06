@@ -15,7 +15,7 @@ export default function OrganizersManagementPage() {
   useEffect(() => {
     const fetchOrganizers = async () => {
       try {
-        const res = await fetch('http://localhost:5557/management/organizers', {
+        const res = await fetch('https://servertikiti-production.up.railway.app/management/organizers', {
           credentials: 'include',
         });
 
