@@ -12,30 +12,44 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const response = await axios.post('https://servertikiti-production.up.railway.app/auth/login', formData, {
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  try {
+    console.log('📤 Submitting login:', formData);
+
+    const response = await axios.post('https://servertikiti-production.up.railway.app/auth/login', formData, {
+      withCredentials: true
+    });
+
+    console.log('✅ Login response:', response.data);
+
+    if (response.data.message === 'Logged in') {
+      console.log('🔄 Fetching session...');
+
+      const sessionRes = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
         withCredentials: true
       });
-     if (response.data.message === 'Logged in') {
-  // Fetch session
-  const sessionRes = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
-    withCredentials: true
-  });
 
-  const { user } = sessionRes.data;
-  if (user?.role === 'organizer' && user?.organizer_id) {
-    router.push(`/organizer/${user.organizer_id}/dashboard`);
-  } else {
-    router.push('/profile');
-  }
-}
-    } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      console.log('📦 Session response:', sessionRes.data);
+
+      const { user } = sessionRes.data;
+      if (user?.role === 'organizer' && user?.organizer_id) {
+        console.log('➡️ Redirecting to organizer dashboard');
+        router.push(`/organizer/${user.organizer_id}/dashboard`);
+      } else {
+        console.log('➡️ Redirecting to profile');
+        router.push('/profile');
+      }
+    } else {
+      console.log('❌ Login failed: unexpected response');
     }
-  };
+  } catch (err) {
+    console.error('❌ Login error:', err);
+    setError(err.response?.data?.error || 'Login failed');
+  }
+};
+
 
   return (
     <div className="min-h-screen flex">
