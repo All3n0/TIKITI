@@ -13,7 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
+import CookieConsentBanner from '../components/CookieConsentBanner';
 
 function getCategoryIcon(name: string) {
   const iconMap: Record<string, JSX.Element> = {
@@ -54,12 +54,36 @@ async function getEventCounts() {
 }
 
 export default function Home() {
+  const [hasConsent, setHasConsent] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
   const [featuredOrganizers, setFeaturedOrganizers] = useState<any[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<any[]>([]);
   const [showAllEvents, setShowAllEvents] = useState(false);
   const router = useRouter();
   useEffect(() => {
+    const consent = localStorage.getItem('cookieConsent');
+    if (consent) {
+      setHasConsent(true);
+      checkSession(); // 🔐 Check session if consent already given
+    }
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      console.log('Session user:', data);
+    } catch (err) {
+      console.warn('Session check failed', err);
+    } finally {
+      setSessionChecked(true);
+    }
+  };
+  useEffect(() => {
+    if (hasConsent) {
     async function fetchData() {
       const [events, organizers, counts] = await Promise.all([
         getFeaturedEvents(),
@@ -71,8 +95,8 @@ export default function Home() {
       setCategoryCounts(counts);
     }
 
-    fetchData();
-  }, []);
+    fetchData();}
+  }, [hasConsent]);
 
   const visibleEvents = showAllEvents ? featuredEvents : featuredEvents.slice(0, 4);
   return (
@@ -304,7 +328,13 @@ export default function Home() {
     </div>
   </div>
 </section>
+<CookieConsentBanner onConsentGiven={() => {
+  setHasConsent(true);
+  checkSession();
+}} />
+
 
     </main>
+    
   );
 }
