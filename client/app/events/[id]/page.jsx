@@ -17,7 +17,7 @@ const [ticketsData, setTicketsData] = useState([]);
   // ✅ Fetch event details
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:5557/events/${id}/details`)
+    fetch(`https:localhost:5557/events/${id}/details`)
       .then(res => res.json())
       .then(data => {
         setEvent(data);
@@ -59,7 +59,7 @@ const [ticketsData, setTicketsData] = useState([]);
     if (!sessionUser) {window.location.href = '/login'; return;}
 
     try {
-      const response = await fetch('http://localhost:5557/checkout', {
+      const response = await fetch('/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -16,12 +16,12 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('http://localhost:5557/auth/login', formData, {
+      const response = await axios.post('https://servertikiti-production.up.railway.app/auth/login', formData, {
         withCredentials: true
       });
      if (response.data.message === 'Logged in') {
   // Fetch session
-  const sessionRes = await axios.get('http://localhost:5557/auth/session', {
+  const sessionRes = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
     withCredentials: true
   });
 
