@@ -17,7 +17,7 @@ const [ticketsData, setTicketsData] = useState([]);
   // ✅ Fetch event details
   useEffect(() => {
     if (!id) return;
-    fetch(`https:localhost:5557/events/${id}/details`)
+    fetch(`https://servertikiti-production.up.railway.app/events/${id}/details`)
       .then(res => res.json())
       .then(data => {
         setEvent(data);
