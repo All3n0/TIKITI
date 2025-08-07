@@ -72,7 +72,7 @@ useEffect(() => {
 
 const checkSession = async () => {
   try {
-    const token = localStorage.getItem('token'); // Get token from storage
+    const token = localStorage.getItem('authtoken'); // Get token from storage
 
     if (!token) {
       console.warn('No token found');
