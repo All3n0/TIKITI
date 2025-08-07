@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CalendarDays, MapPin, Star, Users } from 'lucide-react';
 import TicketView from '../../../components/TicketView';
-import axios from 'axios'; // Added missing import
+import axios from 'axios';
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [user, setUser] = useState(null); // Using single user state
+  const [user, setUser] = useState(null);
   const [ticketsData, setTicketsData] = useState([]);
   const [orderInfo, setOrderInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,10 +36,7 @@ export default function EventDetailPage() {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('authToken');
-        console.log('Retrieved token:', token); // Debug token retrieval
-        
         if (!token) {
-          console.warn('No token found in localStorage');
           setIsLoading(false);
           return;
         }
@@ -49,17 +46,18 @@ export default function EventDetailPage() {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+          withCredentials: true // Important for session cookies
         });
 
-        console.log('Session response:', res.data); // Debug session response
-        
         if (res.data && res.data.user) {
           setUser(res.data.user);
-          console.log('User set:', res.data.user); // Debug user setting
         }
       } catch (err) {
         console.error('Session check failed:', err);
-        localStorage.removeItem('authToken');
+        // Only remove token if it's an unauthorized error
+        if (err.response?.status === 401) {
+          localStorage.removeItem('authToken');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -68,17 +66,20 @@ export default function EventDetailPage() {
     checkSession();
   }, []);
 
+  const updateQuantity = (ticketId, change) => {
+    setQuantities(prev => {
+      const newValue = Math.max(0, (prev[ticketId] || 0) + change);
+      return { ...prev, [ticketId]: newValue };
+    });
+  };
+
   const handlePayment = async () => {
-    console.log('Payment initiated - current user:', user); // Debug current user
-    console.log('Current token:', localStorage.getItem('authToken')); // Debug token
-    
     if (isLoading) {
       console.log('Waiting for session to load...');
       return;
     }
 
     if (!user) {
-      console.warn('No user found - redirecting to login');
       window.location.href = '/login';
       return;
     }
@@ -89,29 +90,23 @@ export default function EventDetailPage() {
         throw new Error('No authentication token found');
       }
 
-      console.log('Sending payment request with user:', user.id); // Debug payment request
-      
-      const response = await fetch('https://servertikiti-production.up.railway.app/checkout', {
-        method: 'POST',
+      const response = await axios.post('https://servertikiti-production.up.railway.app/checkout', {
+        user_id: user.id,
+        quantities,
+        attendee_name: user.username,
+        attendee_email: user.email,
+        billing_address: 'Nairobi, KE',
+        payment_method: 'manual',
+      }, {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          user_id: user.id,
-          quantities,
-          attendee_name: user.username,
-          attendee_email: user.email,
-          billing_address: 'Nairobi, KE',
-          payment_method: 'manual',
-        }),
+        withCredentials: true
       });
 
-      const data = await response.json();
-      console.log('Payment response:', data); // Debug payment response
-      
-      if (response.ok) {
+      const data = response.data;
+      if (response.status === 200) {
         const tickets = data.tickets.map(t => ({
           attendee_name: t.attendee_name,
           attendee_email: t.attendee_email,
@@ -138,18 +133,22 @@ export default function EventDetailPage() {
       }
     } catch (err) {
       console.error('Checkout error:', err);
-      alert('Checkout failed. Please try again.');
+      // Handle 401 unauthorized
+      if (err.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        setUser(null);
+        window.location.href = '/login';
+      } else {
+        alert('Checkout failed. Please try again.');
+      }
     }
   };
 
-  // ... rest of your component remains the same ...
-
-  if (!event) return <div className="text-center py-20 text-gray-800">Loading...</div>;
+  if (!event) return <div className="text-center py-20 text-gray-800">Loading event details...</div>;
 
   const formatDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const formatTime = iso => new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
-
+  const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
   return (
     <div className="bg-white text-gray-800 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
