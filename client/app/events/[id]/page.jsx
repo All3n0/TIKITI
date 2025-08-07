@@ -30,44 +30,39 @@ const [ticketsData, setTicketsData] = useState([]);
   }, [id]);
 
   // ✅ Fetch session on mount
-useEffect(() => {
-  const checkSession = async () => {
-  setisLoading(true);
-  try {
-    const token = localStorage.getItem('token'); // get the token from localStorage
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('authToken'); // Changed to 'authToken' for consistency
+        
+        if (!token) {
+          console.warn('No token found');
+          setIsLoading(false);
+          return;
+        }
 
-    if (!token) {
-      console.warn('No token found');
-      setisLoading(false);
-      return;
-    }
+        const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-    const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP error ${res.status}`);
-    }
-      if (res.data && res.data.user) {
+        if (res.data && res.data.user) {
           setUser(res.data.user); // Actually set the user state
           console.log('User session:', res.data.user);
-    const data = await res.json();
-    console.log('Session user:', data);
-  } }catch (err) {
-    console.error('Session check failed', err);
-    localStorage.removeItem('authToken'); // Cleanup on failure
-
-  } finally {
-    setisLoading(false);
-  }
-};
-checkSession();
-}, []);
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+        localStorage.removeItem('authToken');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
 
 
