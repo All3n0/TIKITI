@@ -24,34 +24,43 @@ export default function TicketTypesPage() {
     }
   };
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-          credentials: 'include',
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch session');
-        const sessionData = await res.json();
-        const user = sessionData.user || sessionData;
-
-        if (!user || !user.id || user.role !== 'organizer') {
-          router.push('/login');
-          return;
-        }
-
-        setOrganiserId(user.id);
-        await fetchTicketTypes(user.id);
-      } catch (err) {
-        console.error('Session check failed:', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const checkSession = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
-    };
 
-    init();
-  }, [router]);
+      const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+
+      const user = res.data?.user || res.data;
+      
+      if (!user?.id || user.role !== 'organizer') {
+        throw new Error('User not authorized as organizer');
+      }
+
+      setOrganiserId(user.id);
+      await fetchTicketTypes(user.id);
+    } catch (err) {
+      console.error('Session check failed:', err);
+      // Clear invalid token if exists
+      localStorage.removeItem('authToken');
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  checkSession();
+}, [router]);
 
   const openModal = () => {
     setEditingTicketType(null);
