@@ -8,14 +8,19 @@ import axios from 'axios';
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    useEffect(() => {
+  useEffect(() => {
     const checkLogin = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return setIsLoggedIn(false);
+
       try {
         const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
-          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
 
-        if (res.data && res.data.id) {
+        if (res.data?.user?.id) {
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);
@@ -29,7 +34,6 @@ export default function Header() {
     checkLogin();
   }, []);
 
-
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -37,13 +41,12 @@ export default function Header() {
           TIKITI
         </Link>
 
-        {/* User Icon */}
         <Link
-      href={isLoggedIn ? '/profile' : '/register'}
-      className="text-gray-700 hover:text-amber-600 transition-colors"
-    >
-      <User className="w-6 h-6" />
-    </Link>
+          href={isLoggedIn ? '/profile' : '/register'}
+          className="text-gray-700 hover:text-amber-600 transition-colors"
+        >
+          <User className="w-6 h-6" />
+        </Link>
       </div>
     </header>
   );

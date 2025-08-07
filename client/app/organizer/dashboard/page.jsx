@@ -14,55 +14,70 @@ export default function OrganizerDashboard() {
   const [upcoming, setUpcoming] = useState([]);
   const [analytics, setAnalytics] = useState(null);
 
-  useEffect(() => {
-    const fetchAllTabs = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', { credentials: 'include' });
-        const user = await res.json();
-        if (!user || user.role !== 'organizer') {
-          router.push('/login');
-          return;
-        }
+ useEffect(() => {
+  const fetchAllTabs = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return router.push('/login');
 
-        const eventsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/events`);
-        setEvents(await eventsRes.json());
+    try {
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const upcomingRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/upcoming`);
-        setUpcoming(await upcomingRes.json());
+      const { user } = await res.json();
 
-        const analyticsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/analytics`);
-        setAnalytics(await analyticsRes.json());
-      } catch (err) {
-        console.error('Error loading tabs', err);
+      if (!user || user.role !== 'organizer') {
+        router.push('/login');
+        return;
       }
-    };
 
-    fetchAllTabs();
-  }, []);
+      const eventsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/events`);
+      setEvents(await eventsRes.json());
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-          credentials: 'include',
-        });
-        const user = await res.json();
+      const upcomingRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/upcoming`);
+      setUpcoming(await upcomingRes.json());
 
-        if (!user || user.role !== 'organizer') {
-          router.push('/login');
-          return;
-        }
+      const analyticsRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/analytics`);
+      setAnalytics(await analyticsRes.json());
+    } catch (err) {
+      console.error('Error loading tabs', err);
+    }
+  };
 
-        const dashboardRes = await fetch(`https://servertikiti-production.up.railway.app/organizers/${user.id}/dashboard`);
-        const dashboardData = await dashboardRes.json();
-        setData(dashboardData);
-      } catch (err) {
-        console.error('Error fetching dashboard', err);
+  fetchAllTabs();
+}, []);
+
+useEffect(() => {
+  const fetchDashboard = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return router.push('/login');
+
+    try {
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { user } = await res.json();
+
+      if (!user || user.role !== 'organizer') {
+        router.push('/login');
+        return;
       }
-    };
 
-    fetchDashboard();
-  }, [router]);
+      const dashboardRes = await fetch(`https://servertikiti-production.up.railway.app/organizers/${user.id}/dashboard`);
+      const dashboardData = await dashboardRes.json();
+      setData(dashboardData);
+    } catch (err) {
+      console.error('Error fetching dashboard', err);
+    }
+  };
+
+  fetchDashboard();
+}, [router]);
 
   if (!data) return <div className="p-6 text-gray-600">Loading...</div>;
 
