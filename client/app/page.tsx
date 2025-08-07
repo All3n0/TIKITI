@@ -70,18 +70,38 @@ export default function Home() {
   }, []);
 
   const checkSession = async () => {
-    try {
-      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-        credentials: 'include',
-      });
-      const data = await res.json();
-      console.log('Session user:', data);
-    } catch (err) {
-      console.warn('Session check failed', err);
-    } finally {
+  try {
+    const token = localStorage.getItem('token'); // Get token from storage
+
+    if (!token) {
+      console.warn('No token found');
       setSessionChecked(true);
+      return;
     }
-  };
+
+    const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error('Invalid or expired token');
+    }
+
+    const data = await res.json();
+    console.log('Session user:', data);
+    // Optionally update state with user data here
+  } catch (err) {
+    console.warn('Session check failed', err);
+    // Optionally handle logout or redirect
+  } finally {
+    setSessionChecked(true);
+  }
+};
+
   useEffect(() => {
     if (hasConsent) {
     async function fetchData() {
