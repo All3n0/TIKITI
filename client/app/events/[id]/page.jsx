@@ -13,7 +13,8 @@ export default function EventDetailPage() {
 const [ticketsData, setTicketsData] = useState([]);
   const [orderInfo, setOrderInfo] = useState(null);
   const [currentTicketIndex, setCurrentTicketIndex] = useState(0);
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null); // ✅ Holds user session data
   // ✅ Fetch event details
   useEffect(() => {
     if (!id) return;
@@ -73,69 +74,58 @@ const [ticketsData, setTicketsData] = useState([]);
     }));
   };
 
- const handlePayment = async () => {
-    if (isLoading) return;
-    
-    if (!user) {
-      // Instead of redirecting immediately, show a message
-      alert('Please log in to purchase tickets');
-      window.location.href = '/login'; 
-      return;
-    }
+  const handlePayment = async () => {
+if (!user) {
+  window.location.href = '/login';
+  return;
+}
 
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) throw new Error('No authentication token');
-
-      const response = await axios.post('https://servertikiti-production.up.railway.app/checkout', {
-        user_id: user.id,
-        quantities,
-        attendee_name: user.username,
-        attendee_email: user.email,
-        billing_address: 'Nairobi, KE',
-        payment_method: 'manual',
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
+      const response = await fetch('/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: user.id,
+          quantities,
+          attendee_name: user.username,
+          attendee_email: user.email,
+          billing_address: 'Nairobi, KE',
+          payment_method: 'manual',
+        }),
       });
 
-      const data = response.data;
-      const tickets = data.tickets.map(t => ({
-        attendee_name: t.attendee_name,
-        attendee_email: t.attendee_email,
-        ticket_type: t.ticket_type,
-        price: t.price,
-        serial: t.unique_code,
-        qr_code_path: t.qr_code_path,
-      }));
+      const data = await response.json();
+      if (response.ok) {
+        const tickets = data.tickets.map(t => ({
+  attendee_name: t.attendee_name,
+  attendee_email: t.attendee_email,
+  ticket_type: t.ticket_type,
+  price: t.price,
+  serial: t.unique_code,
+  qr_code_path: t.qr_code_path,
+}));
+setTicketsData(tickets);
 
-      setTicketsData(tickets);
-      setOrderInfo({ 
-        order_id: data.order_id, 
-        total: data.total,
-        transaction_reference: data.transaction_reference 
-      });
+        setOrderInfo({ order_id: data.order_id, total: data.total,transaction_reference: data.transaction_reference });
 
-      // Reset quantities
-      setQuantities(prev => {
-        const reset = { ...prev };
-        Object.keys(reset).forEach(k => (reset[k] = 0));
-        return reset;
-      });
-      
-      setShowModal(false);
+        setQuantities(prev => {
+          const reset = { ...prev };
+          Object.keys(reset).forEach(k => (reset[k] = 0));
+          return reset;
+        });
+        setShowModal(false);
+      } else {
+        alert(data.error || 'Something went wrong.');
+      }
     } catch (err) {
       console.error('Checkout error:', err);
-      alert(err.response?.data?.error || 'Payment failed. Please try again.');
+      alert('Checkout failed.');
     }
   };
 
-  if (!event || isLoading) {
-    return <div className="text-center py-20 text-gray-800">Loading event details...</div>;
-  }
+  if (!event) return <div className="text-center py-20 text-gray-800">Loading...</div>;
+
   const formatDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const formatTime = iso => new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
