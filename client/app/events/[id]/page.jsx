@@ -60,7 +60,7 @@ useEffect(() => {
     setSessionChecked(true);
   }
 };
-
+checkSession();
 }, []);
 
 
