@@ -231,6 +231,7 @@ const handleReject = async (id: any) => {
     }
   };
 
+
   const handleRejectEvent = async (eventId: any) => {
     try {
       const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
