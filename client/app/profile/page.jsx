@@ -39,8 +39,6 @@ export default function ProfilePage() {
 
 
  useEffect(() => {
-  if (!user) return;
-
   const fetchOrders = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) return;
@@ -48,18 +46,21 @@ export default function ProfilePage() {
     try {
       const res = await axios.get('https://servertikiti-production.up.railway.app/profile/tickets', {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setOrders(res.data);
     } catch (err) {
       console.error('Error fetching tickets:', err);
+      if (err.response?.status === 401) {
+        localStorage.removeItem('authToken');
+      }
     }
   };
 
   fetchOrders();
-}, [user]);
+}, []);
 
 
   const handleLogout = () => {
