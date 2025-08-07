@@ -52,70 +52,97 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Check session
-        const sessionRes = await fetch('https://servertikiti-production.up.railway.app/management/session', {
-          credentials: 'include',
-        });
-        
-        if (!sessionRes.ok) {
-          router.push('/management/login');
-          return;
-        }
-        
-        const managerData = await sessionRes.json();
-        setManager(managerData);
-
-        // Fetch all dashboard data
-        await fetchDashboardData();
-
-      } catch (err) {
-        console.error(err);
-        router.push('/management/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+useEffect(() => {
   const fetchDashboardData = async () => {
-  try {
-    const [statsRes, eventsRes, venuesRes, orgsRes] = await Promise.all([
-      fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', { credentials: 'include' }),
-      fetch('https://servertikiti-production.up.railway.app/management/events/pending', { credentials: 'include' }),
-      fetch('https://servertikiti-production.up.railway.app/management/venues/pending', { credentials: 'include' }),
-      fetch('https://servertikiti-production.up.railway.app/management/organizers', { credentials: 'include' })
-    ]);
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-    const [statsData, eventsData, venuesData, orgsData] = await Promise.all([
-      statsRes.json(),
-      eventsRes.json(),
-      venuesRes.json(),
-      orgsRes.json()
-    ]);
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
 
-    // Transform backend snake_case to frontend camelCase
-    const transformedStats = {
-      activeEvents: statsData.active_events,
-      pendingEvents: statsData.pending_events,
-      totalOrganizers: statsData.total_organizers,
-      pendingVenues: venuesData.length
-    };
+      const [statsRes, eventsRes, venuesRes, orgsRes] = await Promise.all([
+        fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', { headers }),
+        fetch('https://servertikiti-production.up.railway.app/management/events/pending', { headers }),
+        fetch('https://servertikiti-production.up.railway.app/management/venues/pending', { headers }),
+        fetch('https://servertikiti-production.up.railway.app/management/organizers', { headers })
+      ]);
 
-    console.log('Transformed stats:', transformedStats); // Verify this shows correct values
+      // Check if any response failed
+      if (!statsRes.ok || !eventsRes.ok || !venuesRes.ok || !orgsRes.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
 
-    setStats(transformedStats);
-    setPendingEvents(eventsData);
-    setPendingVenues(venuesData);
-    setOrganizers(orgsData);
-    
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-  }
-};
-    fetchData();
-  }, [router]);
+      const [statsData, eventsData, venuesData, orgsData] = await Promise.all([
+        statsRes.json(),
+        eventsRes.json(),
+        venuesRes.json(),
+        orgsRes.json()
+      ]);
+
+      // Transform backend snake_case to frontend camelCase
+      const transformedStats = {
+        activeEvents: statsData.active_events,
+        pendingEvents: statsData.pending_events,
+        totalOrganizers: statsData.total_organizers,
+        pendingVenues: venuesData.length
+      };
+
+      setStats(transformedStats);
+      setPendingEvents(eventsData);
+      setPendingVenues(venuesData);
+      setOrganizers(orgsData);
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      throw error; // Re-throw to be caught by the outer catch
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
+      }
+
+      // Check session with JWT token
+      const sessionRes = await fetch('https://servertikiti-production.up.railway.app/management/session', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!sessionRes.ok) {
+        localStorage.removeItem('managementToken');
+        router.push('/management/login');
+        return;
+      }
+      
+      const { manager } = await sessionRes.json();
+      setManager(manager);
+
+      // Fetch all dashboard data
+      await fetchDashboardData();
+
+    } catch (err) {
+      console.error('Session check error:', err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [router]);
 
   const handleLogout = async () => {
     await fetch('https://servertikiti-production.up.railway.app/management/logout', {
