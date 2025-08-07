@@ -14,39 +14,52 @@ export default function ProfilePage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const router = useRouter();
 
-useEffect(() => {
-  const fetchUserAndOrders = async () => {
+ useEffect(() => {
+  const fetchUser = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) return;
 
     try {
-      // ✅ Step 1: Get user session from token
-      const sessionRes = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
+      const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
-      const userData = sessionRes.data.user || sessionRes.data;
-      setUser(userData); // You already have this working
-
-      // ✅ Step 2: Now fetch the orders
-      const ticketsRes = await axios.get('https://servertikiti-production.up.railway.app/profile/tickets', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      setOrders(ticketsRes.data);
+      if (res.data && res.data.user) {
+        setUser(res.data.user);
+      }
     } catch (err) {
-      console.error('Error fetching user or tickets:', err);
-      localStorage.removeItem('authToken'); // Remove token on failure
+      console.error('Error fetching user', err);
+      localStorage.removeItem('authToken'); // Cleanup on failure
+    }
+  };
+  fetchUser();
+}, []);
+
+
+ useEffect(() => {
+  if (!user) return;
+
+  const fetchOrders = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    try {
+      const res = await axios.get('https://servertikiti-production.up.railway.app/profile/tickets', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      setOrders(res.data);
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
     }
   };
 
-  fetchUserAndOrders();
-}, []);
-
+  fetchOrders();
+}, [user]);
 
 
   const handleLogout = () => {
