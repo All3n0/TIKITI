@@ -38,6 +38,8 @@ export default function ProfilePage() {
 }, []);
 
 
+
+
  useEffect(() => {
   if (!user) return;
 
@@ -49,18 +51,24 @@ export default function ProfilePage() {
       const res = await axios.get('https://servertikiti-production.up.railway.app/profile/tickets', {
         headers: {
           Authorization: `Bearer ${token}`
-        }
+        },
+        withCredentials: true // Important for cookies
       });
 
       setOrders(res.data);
     } catch (err) {
       console.error('Error fetching tickets:', err);
+      // Handle specific error cases
+      if (err.response && err.response.status === 401) {
+        // Unauthorized - token might be invalid/expired
+        localStorage.removeItem('authToken');
+        setUser(null);
+      }
     }
   };
 
   fetchOrders();
 }, [user]);
-
 
   const handleLogout = () => {
   localStorage.removeItem('authToken');
