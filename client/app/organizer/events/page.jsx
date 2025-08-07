@@ -14,44 +14,56 @@ export default function EventsPage() {
   const [organiserId, setOrganiserId] = useState(null);
   const router = useRouter();
 
-  const fetchEvents = async (id) => {
+  const fetchEvents = async (id, token) => {
+  try {
+    const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/events`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setEvents(res.data);
+  } catch (err) {
+    console.error('Error fetching events:', err);
+  }
+};
+
+useEffect(() => {
+  const init = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     try {
-      const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/events`);
-      setEvents(res.data);
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch session');
+
+      const { user } = await res.json();
+
+      if (!user || !user.id || user.role !== 'organizer') {
+        router.push('/login');
+        return;
+      }
+
+      setOrganiserId(user.id);
+      await fetchEvents(user.id, token);
     } catch (err) {
-      console.error('Error fetching events:', err);
+      console.error('Session check failed:', err);
+      router.push('/login');
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-          credentials: 'include',
-        });
+  init();
+}, [router]);
 
-        if (!res.ok) throw new Error('Failed to fetch session');
-
-        const sessionData = await res.json();
-        const user = sessionData.user || sessionData;
-
-        if (!user || !user.id || user.role !== 'organizer') {
-          router.push('/login');
-          return;
-        }
-
-        setOrganiserId(user.id);
-        await fetchEvents(user.id);
-      } catch (err) {
-        console.error('Session check failed:', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
-  }, [router]);
 
   const openCreationModal = () => setShowCreationModal(true);
   const closeCreationModal = () => setShowCreationModal(false);

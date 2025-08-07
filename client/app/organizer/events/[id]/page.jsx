@@ -14,34 +14,56 @@ export default function OrganizerEventDetails() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        const res = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}`);
-        setEvent(res.data);
+  const fetchEvents = async (id, token) => {
+  try {
+    const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/events`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setEvents(res.data);
+  } catch (err) {
+    console.error('Error fetching events:', err);
+  }
+};
 
-        const statsRes = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}/stats`);
-        setStats(statsRes.data);
-      } catch (err) {
-        console.error('Error loading event:', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  const init = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
 
-    fetchDetails();
-  }, [id, router]);
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-      await axios.delete(`https://servertikiti-production.up.railway.app/events/${id}`);
-      router.push('/organizer/events');
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch session');
+
+      const { user } = await res.json();
+
+      if (!user || !user.id || user.role !== 'organizer') {
+        router.push('/login');
+        return;
+      }
+
+      setOrganiserId(user.id);
+      await fetchEvents(user.id, token);
     } catch (err) {
-      console.error('Delete failed:', err);
+      console.error('Session check failed:', err);
+      router.push('/login');
+    } finally {
+      setLoading(false);
     }
   };
+
+  init();
+}, [router]);
+
 
   if (loading) {
     return (
