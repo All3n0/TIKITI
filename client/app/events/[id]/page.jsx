@@ -32,38 +32,29 @@ const [ticketsData, setTicketsData] = useState([]);
   // ✅ Fetch session on mount
 useEffect(() => {
   const fetchSession = async () => {
-    try {
-      const token = localStorage.getItem('token'); // Make sure the token is stored on login
-      if (!token) {
-        console.warn('No token found');
-        return;
-      }
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
 
-      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-        method: 'GET',
+    try {
+      const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
 
-      if (!res.ok) {
-        console.warn('Session fetch failed', await res.text());
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data?.user?.id) {
-        setSessionUser(data.user);
+      if (res.data && res.data.user) {
+        setSessionUser(res.data.user);
       }
     } catch (err) {
       console.error('Failed to fetch session:', err);
+      localStorage.removeItem('authToken'); // Remove bad token
+      setSessionUser(null);
     }
   };
 
   fetchSession();
 }, []);
+
 
 
   const updateQuantity = (ticketId, change) => {
