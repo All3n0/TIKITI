@@ -73,55 +73,69 @@ const [ticketsData, setTicketsData] = useState([]);
     }));
   };
 
-  const handlePayment = async () => {
-    if (!sessionUser) {window.location.href = '/login'; return;}
+ const handlePayment = async () => {
+    if (isLoading) return;
+    
+    if (!user) {
+      // Instead of redirecting immediately, show a message
+      alert('Please log in to purchase tickets');
+      window.location.href = '/login'; 
+      return;
+    }
 
     try {
-      const response = await fetch('/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          user_id: sessionUser.id,
-          quantities,
-          attendee_name: sessionUser.username,
-          attendee_email: sessionUser.email,
-          billing_address: 'Nairobi, KE',
-          payment_method: 'manual',
-        }),
+      const token = localStorage.getItem('authToken');
+      if (!token) throw new Error('No authentication token');
+
+      const response = await axios.post('https://servertikiti-production.up.railway.app/checkout', {
+        user_id: user.id,
+        quantities,
+        attendee_name: user.username,
+        attendee_email: user.email,
+        billing_address: 'Nairobi, KE',
+        payment_method: 'manual',
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        const tickets = data.tickets.map(t => ({
-  attendee_name: t.attendee_name,
-  attendee_email: t.attendee_email,
-  ticket_type: t.ticket_type,
-  price: t.price,
-  serial: t.unique_code,
-  qr_code_path: t.qr_code_path,
-}));
-setTicketsData(tickets);
+      const data = response.data;
+      const tickets = data.tickets.map(t => ({
+        attendee_name: t.attendee_name,
+        attendee_email: t.attendee_email,
+        ticket_type: t.ticket_type,
+        price: t.price,
+        serial: t.unique_code,
+        qr_code_path: t.qr_code_path,
+      }));
 
-        setOrderInfo({ order_id: data.order_id, total: data.total,transaction_reference: data.transaction_reference });
+      setTicketsData(tickets);
+      setOrderInfo({ 
+        order_id: data.order_id, 
+        total: data.total,
+        transaction_reference: data.transaction_reference 
+      });
 
-        setQuantities(prev => {
-          const reset = { ...prev };
-          Object.keys(reset).forEach(k => (reset[k] = 0));
-          return reset;
-        });
-        setShowModal(false);
-      } else {
-        alert(data.error || 'Something went wrong.');
-      }
+      // Reset quantities
+      setQuantities(prev => {
+        const reset = { ...prev };
+        Object.keys(reset).forEach(k => (reset[k] = 0));
+        return reset;
+      });
+      
+      setShowModal(false);
     } catch (err) {
       console.error('Checkout error:', err);
-      alert('Checkout failed.');
+      alert(err.response?.data?.error || 'Payment failed. Please try again.');
     }
   };
 
-  if (!event) return <div className="text-center py-20 text-gray-800">Loading...</div>;
-
+  if (!event || isLoading) {
+    return <div className="text-center py-20 text-gray-800">Loading event details...</div>;
+  }
   const formatDate = iso => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const formatTime = iso => new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 const totalTickets = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
