@@ -14,25 +14,35 @@ export default function OrganizerProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchOrganizer = async () => {
-      try {
-        const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
-          withCredentials: true,
-        });
-        setOrganizer(res.data);
-        setFormData(res.data);
-      } catch (err) {
-        console.error('Failed to fetch organizer profile', err);
-        toast.error('Failed to load profile');
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+useEffect(() => {
+  const fetchOrganizer = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
 
-    fetchOrganizer();
-  }, []);
+    try {
+      const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setOrganizer(res.data);
+      setFormData(res.data);
+    } catch (err) {
+      console.error('Failed to fetch organizer profile', err);
+      toast.error('Failed to load profile');
+      router.push('/login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchOrganizer();
+}, []);
+
 
   const validate = () => {
     const newErrors = {};
@@ -49,36 +59,43 @@ export default function OrganizerProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogout = async () => {
-    try {
-      await axios.post('https://servertikiti-production.up.railway.app/auth/logout', {}, {
-        withCredentials: true,
-      });
-      toast.success('Logged out successfully');
-      router.push('/');
-    } catch (err) {
-      toast.error('Logout failed');
-    }
-  };
+const handleLogout = async () => {
+  try {
+    localStorage.removeItem('authToken'); // Clear the JWT
+    toast.success('Logged out successfully');
+    router.push('/');
+  } catch (err) {
+    toast.error('Logout failed');
+  }
+};
 
-  const handleSave = async () => {
-    if (!validate()) return;
 
-    try {
-      setIsLoading(true);
-      const res = await axios.patch('https://servertikiti-production.up.railway.app/organizer/profile', formData, {
-        withCredentials: true,
-      });
-      setOrganizer(res.data);
-      setEditMode(false);
-      toast.success('Profile updated successfully');
-    } catch (err) {
-      console.error('Update failed', err);
-      toast.error('Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleSave = async () => {
+  if (!validate()) return;
+
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    const res = await axios.patch('https://servertikiti-production.up.railway.app/organizer/profile', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setOrganizer(res.data);
+    setEditMode(false);
+    toast.success('Profile updated successfully');
+  } catch (err) {
+    console.error('Update failed', err);
+    toast.error('Failed to update profile');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleInputFocus = (e) => {
     if (e.target.name === 'phone' && e.target.value === organizer.phone) {
