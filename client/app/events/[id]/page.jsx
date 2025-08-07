@@ -3,19 +3,19 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CalendarDays, MapPin, Star, Users } from 'lucide-react';
 import TicketView from '../../../components/TicketView';
+import axios from 'axios'; // Added missing import
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [sessionUser, setSessionUser] = useState(null); // ✅ Now holds full user object
-const [ticketsData, setTicketsData] = useState([]);
+  const [user, setUser] = useState(null); // Using single user state
+  const [ticketsData, setTicketsData] = useState([]);
   const [orderInfo, setOrderInfo] = useState(null);
-  const [currentTicketIndex, setCurrentTicketIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null); // ✅ Holds user session data
-  // ✅ Fetch event details
+
+  // Fetch event details
   useEffect(() => {
     if (!id) return;
     fetch(`https://servertikiti-production.up.railway.app/events/${id}/details`)
@@ -30,15 +30,16 @@ const [ticketsData, setTicketsData] = useState([]);
       });
   }, [id]);
 
-  // ✅ Fetch session on mount
+  // Check authentication and fetch user session
   useEffect(() => {
     const checkSession = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('authToken'); // Changed to 'authToken' for consistency
+        const token = localStorage.getItem('authToken');
+        console.log('Retrieved token:', token); // Debug token retrieval
         
         if (!token) {
-          console.warn('No token found');
+          console.warn('No token found in localStorage');
           setIsLoading(false);
           return;
         }
@@ -50,9 +51,11 @@ const [ticketsData, setTicketsData] = useState([]);
           },
         });
 
+        console.log('Session response:', res.data); // Debug session response
+        
         if (res.data && res.data.user) {
-          setUser(res.data.user); // Actually set the user state
-          console.log('User session:', res.data.user);
+          setUser(res.data.user);
+          console.log('User set:', res.data.user); // Debug user setting
         }
       } catch (err) {
         console.error('Session check failed:', err);
@@ -65,27 +68,35 @@ const [ticketsData, setTicketsData] = useState([]);
     checkSession();
   }, []);
 
-
-
-  const updateQuantity = (ticketId, change) => {
-    setQuantities(prev => ({
-      ...prev,
-      [ticketId]: Math.max(0, prev[ticketId] + change),
-    }));
-  };
-
   const handlePayment = async () => {
-  if (isLoading) return; // Wait until session finishes loading
+    console.log('Payment initiated - current user:', user); // Debug current user
+    console.log('Current token:', localStorage.getItem('authToken')); // Debug token
+    
+    if (isLoading) {
+      console.log('Waiting for session to load...');
+      return;
+    }
 
-  if (!user) {
-    window.location.href = '/login';
-    return;
-  }
+    if (!user) {
+      console.warn('No user found - redirecting to login');
+      window.location.href = '/login';
+      return;
+    }
 
     try {
-      const response = await fetch('/checkout', {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('Sending payment request with user:', user.id); // Debug payment request
+      
+      const response = await fetch('https://servertikiti-production.up.railway.app/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
         credentials: 'include',
         body: JSON.stringify({
           user_id: user.id,
@@ -98,19 +109,23 @@ const [ticketsData, setTicketsData] = useState([]);
       });
 
       const data = await response.json();
+      console.log('Payment response:', data); // Debug payment response
+      
       if (response.ok) {
         const tickets = data.tickets.map(t => ({
-  attendee_name: t.attendee_name,
-  attendee_email: t.attendee_email,
-  ticket_type: t.ticket_type,
-  price: t.price,
-  serial: t.unique_code,
-  qr_code_path: t.qr_code_path,
-}));
-setTicketsData(tickets);
-
-        setOrderInfo({ order_id: data.order_id, total: data.total,transaction_reference: data.transaction_reference });
-
+          attendee_name: t.attendee_name,
+          attendee_email: t.attendee_email,
+          ticket_type: t.ticket_type,
+          price: t.price,
+          serial: t.unique_code,
+          qr_code_path: t.qr_code_path,
+        }));
+        setTicketsData(tickets);
+        setOrderInfo({ 
+          order_id: data.order_id, 
+          total: data.total,
+          transaction_reference: data.transaction_reference 
+        });
         setQuantities(prev => {
           const reset = { ...prev };
           Object.keys(reset).forEach(k => (reset[k] = 0));
@@ -118,13 +133,16 @@ setTicketsData(tickets);
         });
         setShowModal(false);
       } else {
+        console.error('Payment failed:', data.error);
         alert(data.error || 'Something went wrong.');
       }
     } catch (err) {
       console.error('Checkout error:', err);
-      alert('Checkout failed.');
+      alert('Checkout failed. Please try again.');
     }
   };
+
+  // ... rest of your component remains the same ...
 
   if (!event) return <div className="text-center py-20 text-gray-800">Loading...</div>;
 
