@@ -14,39 +14,59 @@ export default function ProfilePage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get('https://servertikiti-production.up.railway.app//auth/session', { withCredentials: true });
-        if (res.data) setUser(res.data);
-      } catch (err) {
-        console.error('Error fetching user', err);
-      }
-    };
-    fetchUser();
-  }, []);
+ useEffect(() => {
+  const fetchUser = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get('https://servertikiti-production.up.railway.app//profile/tickets', { withCredentials: true });
-        setOrders(res.data);
-      } catch (err) {
-        console.error('Error fetching tickets:', err);
-      }
-    };
-    fetchOrders();
-  }, [user]);
-
-  const handleLogout = async () => {
     try {
-      await axios.post('https://servertikiti-production.up.railway.app//auth/logout', {}, { withCredentials: true });
-      router.push('/');
+      const res = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (res.data && res.data.user) {
+        setUser(res.data.user);
+      }
     } catch (err) {
-      console.error('Logout failed:', err);
+      console.error('Error fetching user', err);
+      localStorage.removeItem('authToken'); // Cleanup on failure
     }
   };
+  fetchUser();
+}, []);
+
+
+ useEffect(() => {
+  if (!user) return;
+
+  const fetchOrders = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    try {
+      const res = await axios.get('https://servertikiti-production.up.railway.app/profile/tickets', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      setOrders(res.data);
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
+    }
+  };
+
+  fetchOrders();
+}, [user]);
+
+
+  const handleLogout = () => {
+  localStorage.removeItem('authToken');
+  router.push('/');
+};
+
 
   const openTicketView = (event, order, ticket) => {
     setSelectedEvent(event);

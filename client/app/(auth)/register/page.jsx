@@ -16,42 +16,37 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-    
-    try {
-      const response = await axios.post('https://servertikiti-production.up.railway.app/auth/register', formData, {
-        withCredentials: true,  // Important for cookies
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      // Check for successful registration
-      if (response.data.message === 'Registered') {
-        // Redirect to profile page
-        router.push('/profile');
-      } else {
-        setError('Registration failed. Please try again.');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setIsSubmitting(true);
+
+  try {
+    const response = await axios.post('https://servertikiti-production.up.railway.app/auth/register', formData, {
+      headers: {
+        'Content-Type': 'application/json',
       }
-    } catch (err) {
-      // Handle different error cases
-      if (err.response) {
-        // Server responded with an error status
-        setError(err.response.data.error || 'Registration failed');
-      } else if (err.request) {
-        // Request was made but no response received
-        setError('Network error. Please check your connection.');
-      } else {
-        // Something else happened
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      setIsSubmitting(false);
+    });
+
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+      router.push('/profile');
+    } else {
+      setError('Registration failed. Please try again.');
     }
-  };
+  } catch (err) {
+    if (err.response) {
+      setError(err.response.data.error || 'Registration failed');
+    } else if (err.request) {
+      setError('Network error. Please check your connection.');
+    } else {
+      setError('An unexpected error occurred.');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex">
