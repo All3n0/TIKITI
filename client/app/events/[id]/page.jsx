@@ -30,23 +30,41 @@ const [ticketsData, setTicketsData] = useState([]);
   }, [id]);
 
   // ✅ Fetch session on mount
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-          credentials: 'include',
-        });
-        const data = await res.json();
-        if (data?.id) {
-          setSessionUser(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch session:', err);
+useEffect(() => {
+  const fetchSession = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Make sure the token is stored on login
+      if (!token) {
+        console.warn('No token found');
+        return;
       }
-    };
 
-    fetchSession();
-  }, []);
+      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        console.warn('Session fetch failed', await res.text());
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data?.user?.id) {
+        setSessionUser(data.user);
+      }
+    } catch (err) {
+      console.error('Failed to fetch session:', err);
+    }
+  };
+
+  fetchSession();
+}, []);
+
 
   const updateQuantity = (ticketId, change) => {
     setQuantities(prev => ({
