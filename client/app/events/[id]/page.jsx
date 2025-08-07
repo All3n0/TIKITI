@@ -32,11 +32,13 @@ const [ticketsData, setTicketsData] = useState([]);
   // ✅ Fetch session on mount
 useEffect(() => {
   const checkSession = async () => {
+  setisLoading(true);
   try {
     const token = localStorage.getItem('token'); // get the token from localStorage
 
     if (!token) {
       console.warn('No token found');
+      setisLoading(false);
       return;
     }
 
@@ -51,13 +53,17 @@ useEffect(() => {
     if (!res.ok) {
       throw new Error(`HTTP error ${res.status}`);
     }
-
+      if (res.data && res.data.user) {
+          setUser(res.data.user); // Actually set the user state
+          console.log('User session:', res.data.user);
     const data = await res.json();
     console.log('Session user:', data);
-  } catch (err) {
-    console.warn('Session check failed', err);
+  } }catch (err) {
+    console.error('Session check failed', err);
+    localStorage.removeItem('authToken'); // Cleanup on failure
+
   } finally {
-    setSessionChecked(true);
+    setisLoading(false);
   }
 };
 checkSession();

@@ -60,16 +60,17 @@ export default function Home() {
   const [featuredOrganizers, setFeaturedOrganizers] = useState<any[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<any[]>([]);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
   const router = useRouter();
-  useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
-    if (consent) {
-      setHasConsent(true);
-      checkSession(); // 🔐 Check session if consent already given
-    }
-  }, []);
+useEffect(() => {
+  const consent = localStorage.getItem('cookieConsent');
+  if (consent) {
+    setHasConsent(true);
+    checkSession(); // 🔐 Check session if consent already given
+  }
+}, []);
 
-  const checkSession = async () => {
+const checkSession = async () => {
   try {
     const token = localStorage.getItem('token'); // Get token from storage
 
@@ -93,14 +94,17 @@ export default function Home() {
 
     const data = await res.json();
     console.log('Session user:', data);
-    // Optionally update state with user data here
+
+    // ✅ Store user in state
+    setSessionUser(data.user);
   } catch (err) {
     console.warn('Session check failed', err);
-    // Optionally handle logout or redirect
+    // Optional: localStorage.removeItem('token'); // if token is invalid
   } finally {
     setSessionChecked(true);
   }
 };
+
 
   useEffect(() => {
     if (hasConsent) {
