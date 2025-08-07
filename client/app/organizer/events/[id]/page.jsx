@@ -14,21 +14,8 @@ export default function OrganizerEventDetails() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchEvents = async (id, token) => {
-  try {
-    const res = await axios.get(`https://servertikiti-production.up.railway.app/organiser/${id}/events`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    setEvents(res.data);
-  } catch (err) {
-    console.error('Error fetching events:', err);
-  }
-};
-
 useEffect(() => {
-  const init = async () => {
+  const fetchDetails = async () => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       router.push('/login');
@@ -36,33 +23,51 @@ useEffect(() => {
     }
 
     try {
-      const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
+      const res = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      setEvent(res.data);
 
-      if (!res.ok) throw new Error('Failed to fetch session');
-
-      const { user } = await res.json();
-
-      if (!user || !user.id || user.role !== 'organizer') {
-        router.push('/login');
-        return;
-      }
-
-      setOrganiserId(user.id);
-      await fetchEvents(user.id, token);
+      const statsRes = await axios.get(`https://servertikiti-production.up.railway.app/events/${id}/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setStats(statsRes.data);
     } catch (err) {
-      console.error('Session check failed:', err);
+      console.error('Error loading event:', err);
       router.push('/login');
     } finally {
       setLoading(false);
     }
   };
 
-  init();
-}, [router]);
+  fetchDetails();
+}, [id, router]);
+
+const handleDelete = async () => {
+  if (!confirm('Are you sure you want to delete this event?')) return;
+
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    await axios.delete(`https://servertikiti-production.up.railway.app/events/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    router.push('/organizer/events');
+  } catch (err) {
+    console.error('Delete failed:', err);
+  }
+};
+
 
 
   if (loading) {
