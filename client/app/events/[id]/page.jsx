@@ -75,10 +75,12 @@ const [ticketsData, setTicketsData] = useState([]);
   };
 
   const handlePayment = async () => {
-if (!user) {
-  window.location.href = '/login';
-  return;
-}
+  if (isLoading) return; // Wait until session finishes loading
+
+  if (!user) {
+    window.location.href = '/login';
+    return;
+  }
 
     try {
       const response = await fetch('/checkout', {
