@@ -79,7 +79,7 @@ const [ticketsData, setTicketsData] = useState([]);
     if (!user) {
       // Instead of redirecting immediately, show a message
       alert('Please log in to purchase tickets');
-      // window.location.href = '/login'; 
+      window.location.href = '/login'; 
       return;
     }
 
