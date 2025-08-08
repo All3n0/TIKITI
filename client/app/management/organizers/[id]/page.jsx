@@ -5,6 +5,10 @@ import LazyRow from "../../components/Lazyrow";
 
 export default function OrganizerDetailsPage({ params }) {
   const [organizer, setOrganizer] = useState(null);
+  const [organizers, setOrganizers] = useState([]); // Added organizers state
+  const [filtered, setFiltered] = useState([]); // Added filtered state
+  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
+  const [statusFilter, setStatusFilter] = useState("all"); // Added statusFilter state
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const [sponsors, setSponsors] = useState([]);
@@ -18,48 +22,135 @@ export default function OrganizerDetailsPage({ params }) {
   const organizerId = params.id;
 
   useEffect(() => {
-    const fetchOrganizers = async () => {
+    const fetchOrganizer = async () => {
       try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/management/organizers', {
-          credentials: 'include',
+        const token = localStorage.getItem('managementToken');
+        if (!token) {
+          router.push('/management/login');
+          return;
+        }
+
+        const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
 
         if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('managementToken');
+          }
           router.push('/management/login');
           return;
         }
 
         const data = await res.json();
-        setOrganizers(data);
-        setFiltered(data);
+        setOrganizer(data);
       } catch (err) {
         console.error(err);
+        localStorage.removeItem('managementToken');
         router.push('/management/login');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrganizers();
-  }, [router]);
+    fetchOrganizer();
+  }, [organizerId, router]);
+
+  const fetchOrganizerEvents = async (page = 1) => {
+    setEventsLoading(true);
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
+      }
+
+      const res = await fetch(
+        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/events?page=${page}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(prev => (page === 1 ? data.events : [...prev, ...data.events]));
+        setHasMoreEvents(data.current_page < data.pages);
+        setEventsPage(data.current_page);
+      } else if (res.status === 401) {
+        localStorage.removeItem('managementToken');
+        router.push('/management/login');
+      }
+    } catch (err) {
+      console.error("Error fetching organizer events:", err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  const fetchOrganizerSponsors = async (page = 1) => {
+    setSponsorsLoading(true);
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
+      }
+
+      const res = await fetch(
+        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/sponsors?page=${page}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setSponsors(prev => (page === 1 ? data.sponsors : [...prev, ...data.sponsors]));
+        setHasMoreSponsors(data.current_page < data.pages);
+        setSponsorsPage(data.current_page);
+      } else if (res.status === 401) {
+        localStorage.removeItem('managementToken');
+        router.push('/management/login');
+      }
+    } catch (err) {
+      console.error("Error fetching organizer sponsors:", err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setSponsorsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const results = organizers.filter(org => {
-      const matchesSearch =
-        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        org.email.toLowerCase().includes(searchTerm.toLowerCase());
+    if (organizer) {
+      fetchOrganizerEvents();
+      fetchOrganizerSponsors();
+    }
+  }, [organizer]);
 
-      const matchesStatus =
-        statusFilter === 'all' || org.status === statusFilter;
+  const loadMoreEvents = () => {
+    fetchOrganizerEvents(eventsPage + 1);
+  };
 
-      return matchesSearch && matchesStatus;
-    });
-
-    setFiltered(results);
-  }, [searchTerm, statusFilter, organizers]);
+  const loadMoreSponsors = () => {
+    fetchOrganizerSponsors(sponsorsPage + 1);
+  };
 
   if (loading) return <div className="text-center py-20">Loading organizer details...</div>;
   if (!organizer) return <div className="text-center py-20">Organizer not found</div>;
+
 
   return (
     <div className="container mx-auto px-4 py-8">
