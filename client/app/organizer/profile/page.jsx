@@ -14,7 +14,6 @@ export default function OrganizerProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const router = useRouter();
-
   useEffect(() => {
     const fetchOrganizer = async () => {
       const token = localStorage.getItem('authToken');
@@ -24,17 +23,28 @@ export default function OrganizerProfilePage() {
       }
 
       try {
-        console.log('Fetching organizer profile...'); // Debug log
-        const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        // First get the user session to verify organizer status and get user ID
+        const sessionRes = await axios.get('https://servertikiti-production.up.railway.app/auth/session', {
+          headers: { Authorization: `Bearer ${token}` }
         });
 
-        console.log('Profile response:', res.data); // Debug log
-        if (res.data) {
-          setOrganizer(res.data);
-          setFormData(res.data);
+        const { user } = sessionRes.data;
+        
+        if (!user || user.role !== 'organizer') {
+          toast.error('You need to be an organizer to access this page');
+          router.push('/dashboard');
+          return;
+        }
+
+        // Then fetch the organizer profile using the user ID
+        const profileRes = await axios.get(
+          `https://servertikiti-production.up.railway.app/organizers/${user.id}/profile`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (profileRes.data) {
+          setOrganizer(profileRes.data);
+          setFormData(profileRes.data);
         } else {
           throw new Error('No data received');
         }
@@ -154,7 +164,7 @@ export default function OrganizerProfilePage() {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600 mb-4">We couldn't load your organizer profile.</p>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/organizer/dashboard')}
             className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
           >
             Go to Dashboard
