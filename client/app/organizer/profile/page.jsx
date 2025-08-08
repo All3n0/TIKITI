@@ -32,7 +32,7 @@ export default function OrganizerProfilePage() {
         
         if (!user || user.role !== 'organizer') {
           toast.error('You need to be an organizer to access this page');
-          router.push('/dashboard');
+          router.push('/organizer/dashboard');
           return;
         }
 
