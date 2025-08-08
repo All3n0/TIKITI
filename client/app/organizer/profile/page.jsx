@@ -53,7 +53,7 @@ export default function OrganizerProfilePage() {
 
         if (err.response?.status === 403) {
           toast.error('Unauthorized to view this profile');
-          router.push('/dashboard');
+          router.push('/organizer/dashboard');
         } else if (err.response?.status === 401) {
           toast.error('Session expired, please login again');
           localStorage.removeItem('authToken');
