@@ -24,68 +24,118 @@ export default function SponsorDetailsPage({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    const fetchSponsor = async () => {
-      try {
-        const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
-          credentials: 'include',
-        });
-        const data = await res.json();
-        setSponsor(data);
-        setFormData(data);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load sponsor details');
-      }
-    };
-    fetchSponsor();
-  }, [id]);
-
-  const handleUpdate = async () => {
-    setIsSubmitting(true);
+useEffect(() => {
+  const fetchSponsor = async () => {
     try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
-      const updated = await res.json();
-      if (res.ok) {
-        toast.success('Sponsor updated successfully');
-        setSponsor(updated);
-        setEditing(false);
-      } else {
-        toast.error(updated.error || 'Update failed');
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
       }
+
+      const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+          router.push('/management/login');
+        }
+        throw new Error('Failed to fetch sponsor');
+      }
+
+      const data = await res.json();
+      setSponsor(data);
+      setFormData(data);
     } catch (err) {
-      toast.error('Server error');
-    } finally {
-      setIsSubmitting(false);
+      console.error(err);
+      toast.error('Failed to load sponsor details');
     }
   };
+  fetchSponsor();
+}, [id]);
 
-  const handleDelete = async () => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (res.status === 204) {
-        toast.success('Sponsor deleted successfully');
-        router.push('/management/sponsors');
-      } else {
-        const data = await res.json();
-        toast.error(data.error || 'Failed to delete');
-      }
-    } catch (err) {
-      toast.error('Server error');
-    } finally {
-      setIsSubmitting(false);
-      setShowDeleteModal(false);
+const handleUpdate = async () => {
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push('/management/login');
+      return;
     }
-  };
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('managementToken');
+        router.push('/management/login');
+      }
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Update failed');
+    }
+
+    const updated = await res.json();
+    toast.success('Sponsor updated successfully');
+    setSponsor(updated);
+    setEditing(false);
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || 'Server error');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleDelete = async () => {
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push('/management/login');
+      return;
+    }
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/sponsors/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+      return;
+    }
+
+    if (res.status === 204) {
+      toast.success('Sponsor deleted successfully');
+      router.push('/management/sponsors');
+    } else {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to delete');
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || 'Server error');
+  } finally {
+    setIsSubmitting(false);
+    setShowDeleteModal(false);
+  }
+};
 
   if (!sponsor) {
     return (

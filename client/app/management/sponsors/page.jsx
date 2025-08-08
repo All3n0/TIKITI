@@ -7,23 +7,44 @@ export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSponsors = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/sponsors', {
-          credentials: 'include',
-        });
-        const data = await res.json();
-        setSponsors(data);
-      } catch (err) {
-        console.error('Failed to fetch sponsors:', err);
-      } finally {
-        setLoading(false);
+ useEffect(() => {
+  const fetchSponsors = async () => {
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
       }
-    };
-    fetchSponsors();
-  }, []);
 
+      const res = await fetch('https://servertikiti-production.up.railway.app/sponsors', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+          router.push('/management/login');
+        }
+        throw new Error('Failed to fetch sponsors');
+      }
+
+      const data = await res.json();
+      setSponsors(data);
+    } catch (err) {
+      console.error('Failed to fetch sponsors:', err);
+      if (err.message !== 'Failed to fetch sponsors') {
+        toast.error('Failed to load sponsors');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchSponsors();
+}, []);
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[60vh]">

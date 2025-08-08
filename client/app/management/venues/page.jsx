@@ -18,45 +18,58 @@ export default function VenuesPage() {
     setFilteredVenues(prev => [...prev, newVenue]);
   };
 
-  useEffect(() => {
-    const fetchVenues = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/management/venues', {
-          credentials: 'include'
-        });
-
-        if (!res.ok) {
-          router.push('/management/login');
-          return;
-        }
-
-        const data = await res.json();
-        setVenues(data);
-        setFilteredVenues(data);
-      } catch (err) {
-        console.error('Error fetching venues:', err);
+useEffect(() => {
+  const fetchVenues = async () => {
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
         router.push('/management/login');
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchVenues();
-  }, [router]);
+      const res = await fetch('https://servertikiti-production.up.railway.app/management/venues', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  useEffect(() => {
-    const results = venues.filter(venue => {
-      const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          venue.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          venue.address?.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+        }
+        router.push('/management/login');
+        return;
+      }
 
-      const matchesStatus = statusFilter === 'all' || venue.status === statusFilter;
+      const data = await res.json();
+      setVenues(data);
+      setFilteredVenues(data);
+    } catch (err) {
+      console.error('Error fetching venues:', err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      return matchesSearch && matchesStatus;
-    });
+  fetchVenues();
+}, [router]);
 
-    setFilteredVenues(results);
-  }, [searchTerm, statusFilter, venues]);
+useEffect(() => {
+  const results = venues.filter(venue => {
+    const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        venue.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        venue.address?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' || venue.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  setFilteredVenues(results);
+}, [searchTerm, statusFilter, venues]);
 
   if (loading) return (
     <div className="flex justify-center items-center h-[60vh]">

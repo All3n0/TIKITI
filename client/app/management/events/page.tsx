@@ -20,42 +20,55 @@ export default function EventsManagementPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/management/events', {
-          credentials: 'include'
-        });
-        
-        if (!res.ok) {
-          router.push('/management/login');
-          return;
-        }
-        
-        const data = await res.json();
-        setEvents(data);
-        setFilteredEvents(data);
-      } catch (err) {
-        console.error(err);
+  const fetchEvents = async () => {
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
         router.push('/management/login');
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchEvents();
-  }, [router]);
+      const res = await fetch('https://servertikiti-production.up.railway.app/management/events', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+        }
+        router.push('/management/login');
+        return;
+      }
+      
+      const data = await res.json();
+      setEvents(data);
+      setFilteredEvents(data);
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    const results = events.filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          event.organizer_name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    });
-    setFilteredEvents(results);
-  }, [searchTerm, statusFilter, events]);
+  fetchEvents();
+}, [router]);
+
+useEffect(() => {
+  const results = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        event.organizer_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+  setFilteredEvents(results);
+}, [searchTerm, statusFilter, events]);
 
   if (loading) return <div className="text-center py-20">Loading events...</div>;
 

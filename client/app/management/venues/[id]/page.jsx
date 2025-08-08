@@ -14,99 +14,159 @@ export default function VenueDetailsPage({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    const fetchVenue = async () => {
-      try {
-        const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}`, {
-          credentials: 'include',
-        });
-        if (!res.ok) return router.push('/management/login');
-
-        const data = await res.json();
-        setVenue(data);
-        setFormData(data);
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to load venue details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchVenue();
-  }, [id, router]);
-
-  const handleDelete = async () => {
-    setIsSubmitting(true);
+useEffect(() => {
+  const fetchVenue = async () => {
     try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push('/management/login');
+        return;
+      }
+
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (res.status === 204) {
-        toast.success('Venue deleted successfully');
-        router.push('/management/venues');
-      } else {
-        const data = await res.json();
-        toast.error(data.error || 'Failed to delete venue');
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+        }
+        router.push('/management/login');
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Server error occurred');
-    } finally {
-      setIsSubmitting(false);
-      setShowDeleteModal(false);
-    }
-  };
-
-  const handleStatusChange = async (newStatus) => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/${newStatus}`, {
-        method: 'PATCH',
-        credentials: 'include',
-      });
 
       const data = await res.json();
-      if (res.ok) {
-        setVenue(prev => ({ ...prev, status: data.venue.status }));
-        toast.success(`Venue ${newStatus}d successfully`);
-      } else {
-        toast.error(data.error || `Failed to ${newStatus} venue`);
-      }
+      setVenue(data);
+      setFormData(data);
     } catch (err) {
       console.error(err);
-      toast.error('Server error occurred');
+      toast.error('Failed to load venue details');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
+  fetchVenue();
+}, [id, router]);
 
-  const handleUpdate = async () => {
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
+const handleDelete = async () => {
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push('/management/login');
+      return;
+    }
 
-      const updated = await res.json();
-      if (res.ok) {
-        setVenue(updated);
-        setEditing(false);
-        toast.success('Venue updated successfully');
-      } else {
-        toast.error(updated.error || 'Failed to update venue');
+    const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Server error occurred');
-    } finally {
-      setIsSubmitting(false);
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+      return;
     }
-  };
+
+    if (res.status === 204) {
+      toast.success('Venue deleted successfully');
+      router.push('/management/venues');
+    } else {
+      const data = await res.json();
+      toast.error(data.error || 'Failed to delete venue');
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error('Server error occurred');
+  } finally {
+    setIsSubmitting(false);
+    setShowDeleteModal(false);
+  }
+};
+
+const handleStatusChange = async (newStatus) => {
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push('/management/login');
+      return;
+    }
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/${newStatus}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+      return;
+    }
+
+    const data = await res.json();
+    if (res.ok) {
+      setVenue(prev => ({ ...prev, status: data.venue.status }));
+      toast.success(`Venue ${newStatus}d successfully`);
+    } else {
+      toast.error(data.error || `Failed to ${newStatus} venue`);
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error('Server error occurred');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleUpdate = async () => {
+  setIsSubmitting(true);
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push('/management/login');
+      return;
+    }
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/venues/${id}`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+      return;
+    }
+
+    const updated = await res.json();
+    if (res.ok) {
+      setVenue(updated);
+      setEditing(false);
+      toast.success('Venue updated successfully');
+    } else {
+      toast.error(updated.error || 'Failed to update venue');
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error('Server error occurred');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (loading) return (
     <div className="flex justify-center items-center h-screen">

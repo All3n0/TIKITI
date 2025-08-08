@@ -18,86 +18,45 @@ export default function OrganizerDetailsPage({ params }) {
   const organizerId = params.id;
 
   useEffect(() => {
-    const fetchOrganizer = async () => {
+    const fetchOrganizers = async () => {
       try {
-        const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
-          credentials: "include",
+        const res = await fetch('https://servertikiti-production.up.railway.app/management/organizers', {
+          credentials: 'include',
         });
 
         if (!res.ok) {
-          router.push("/management/login");
+          router.push('/management/login');
           return;
         }
 
         const data = await res.json();
-        setOrganizer(data);
+        setOrganizers(data);
+        setFiltered(data);
       } catch (err) {
         console.error(err);
-        router.push("/management/login");
+        router.push('/management/login');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrganizer();
-  }, [organizerId, router]);
-
-  const fetchOrganizerEvents = async (page = 1) => {
-    setEventsLoading(true);
-    try {
-      const res = await fetch(
-        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/events?page=${page}`,
-        { credentials: "include" }
-      );
-
-      if (res.ok) {
-        const data = await res.json();
-        setEvents(prev => (page === 1 ? data.events : [...prev, ...data.events]));
-        setHasMoreEvents(data.current_page < data.pages);
-        setEventsPage(data.current_page);
-      }
-    } catch (err) {
-      console.error("Error fetching organizer events:", err);
-    } finally {
-      setEventsLoading(false);
-    }
-  };
-
-  const fetchOrganizerSponsors = async (page = 1) => {
-    setSponsorsLoading(true);
-    try {
-      const res = await fetch(
-        `https://servertikiti-production.up.railway.app/management/organizers/${organizerId}/sponsors?page=${page}`,
-        { credentials: "include" }
-      );
-
-      if (res.ok) {
-        const data = await res.json();
-        setSponsors(prev => (page === 1 ? data.sponsors : [...prev, ...data.sponsors]));
-        setHasMoreSponsors(data.current_page < data.pages);
-        setSponsorsPage(data.current_page);
-      }
-    } catch (err) {
-      console.error("Error fetching organizer sponsors:", err);
-    } finally {
-      setSponsorsLoading(false);
-    }
-  };
+    fetchOrganizers();
+  }, [router]);
 
   useEffect(() => {
-    if (organizer) {
-      fetchOrganizerEvents();
-      fetchOrganizerSponsors();
-    }
-  }, [organizer]);
+    const results = organizers.filter(org => {
+      const matchesSearch =
+        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        org.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const loadMoreEvents = () => {
-    fetchOrganizerEvents(eventsPage + 1);
-  };
+      const matchesStatus =
+        statusFilter === 'all' || org.status === statusFilter;
 
-  const loadMoreSponsors = () => {
-    fetchOrganizerSponsors(sponsorsPage + 1);
-  };
+      return matchesSearch && matchesStatus;
+    });
+
+    setFiltered(results);
+  }, [searchTerm, statusFilter, organizers]);
 
   if (loading) return <div className="text-center py-20">Loading organizer details...</div>;
   if (!organizer) return <div className="text-center py-20">Organizer not found</div>;

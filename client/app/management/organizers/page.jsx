@@ -12,46 +12,59 @@ export default function OrganizersManagementPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchOrganizers = async () => {
-      try {
-        const res = await fetch('https://servertikiti-production.up.railway.app/management/organizers', {
-          credentials: 'include',
-        });
-
-        if (!res.ok) {
-          router.push('/management/login');
-          return;
-        }
-
-        const data = await res.json();
-        setOrganizers(data);
-        setFiltered(data);
-      } catch (err) {
-        console.error(err);
+useEffect(() => {
+  const fetchOrganizers = async () => {
+    try {
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
         router.push('/management/login');
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchOrganizers();
-  }, [router]);
+      const res = await fetch('https://servertikiti-production.up.railway.app/management/organizers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  useEffect(() => {
-    const results = organizers.filter(org => {
-      const matchesSearch =
-        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        org.email.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+        }
+        router.push('/management/login');
+        return;
+      }
 
-      const matchesStatus =
-        statusFilter === 'all' || org.status === statusFilter;
+      const data = await res.json();
+      setOrganizers(data);
+      setFiltered(data);
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem('managementToken');
+      router.push('/management/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      return matchesSearch && matchesStatus;
-    });
+  fetchOrganizers();
+}, [router]);
 
-    setFiltered(results);
-  }, [searchTerm, statusFilter, organizers]);
+useEffect(() => {
+  const results = organizers.filter(org => {
+    const matchesSearch =
+      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'all' || org.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  setFiltered(results);
+}, [searchTerm, statusFilter, organizers]);
 
   if (loading) return <div className="text-center py-20">Loading organizers...</div>;
 
