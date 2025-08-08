@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { LogOut, Edit, ArrowLeft, Check, X } from 'lucide-react';
@@ -182,7 +184,6 @@ export default function OrganizerProfilePage() {
       </div>
     );
   }
-
   return (
     <div className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
