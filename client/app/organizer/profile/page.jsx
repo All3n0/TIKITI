@@ -24,12 +24,14 @@ export default function OrganizerProfilePage() {
       }
 
       try {
+        console.log('Fetching organizer profile...'); // Debug log
         const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log('Profile response:', res.data); // Debug log
         if (res.data) {
           setOrganizer(res.data);
           setFormData(res.data);
@@ -37,12 +39,18 @@ export default function OrganizerProfilePage() {
           throw new Error('No data received');
         }
       } catch (err) {
-        console.error('Failed to fetch organizer profile', err);
-        toast.error(err.response?.data?.error || 'Failed to load profile');
+        console.error('Failed to fetch organizer profile:', err.response?.data || err.message);
         setFetchError(true);
-        if (err.response?.status === 401) {
+        
+        if (err.response?.status === 403) {
+          toast.error('You need to be an organizer to access this page');
+          router.push('/dashboard');
+        } else if (err.response?.status === 401) {
+          toast.error('Session expired. Please login again');
           localStorage.removeItem('authToken');
           router.push('/login');
+        } else {
+          toast.error(err.response?.data?.error || 'Failed to load profile');
         }
       } finally {
         setIsLoading(false);
@@ -54,14 +62,20 @@ export default function OrganizerProfilePage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.email || !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$/.test(formData.email)) {
-      newErrors.email = 'Enter a valid email';
+    if (!formData.name || formData.name.trim().length < 2) {
+      newErrors.name = 'Organization name must be at least 2 characters';
     }
-    if (!formData.phone || !/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = 'Phone must be 10 digits';
+    if (formData.contact_email && !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$/.test(formData.contact_email)) {
+      newErrors.contact_email = 'Enter a valid email';
+    }
+    if (!formData.phone || !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Enter a valid phone number (at least 10 digits)';
     }
     if (formData.logo && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(formData.logo)) {
       newErrors.logo = 'Enter a valid image URL';
+    }
+    if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website)) {
+      newErrors.website = 'Enter a valid website URL';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,6 +102,7 @@ export default function OrganizerProfilePage() {
 
     try {
       setIsLoading(true);
+      console.log('Saving organizer profile...', formData); // Debug log
       const res = await axios.patch(
         'https://servertikiti-production.up.railway.app/organizer/profile', 
         formData,
@@ -98,15 +113,20 @@ export default function OrganizerProfilePage() {
           },
         }
       );
+      
+      console.log('Save response:', res.data); // Debug log
       setOrganizer(res.data);
       setEditMode(false);
       toast.success('Profile updated successfully');
     } catch (err) {
-      console.error('Update failed', err);
+      console.error('Update failed:', err.response?.data || err.message);
       toast.error(err.response?.data?.error || 'Failed to update profile');
+      
       if (err.response?.status === 401) {
         localStorage.removeItem('authToken');
         router.push('/login');
+      } else if (err.response?.status === 403) {
+        toast.error('You need to be an organizer to perform this action');
       }
     } finally {
       setIsLoading(false);
@@ -134,15 +154,16 @@ export default function OrganizerProfilePage() {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600 mb-4">We couldn't load your organizer profile.</p>
           <button
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/dashboard')}
             className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
           >
-            Go to Login
+            Go to Dashboard
           </button>
         </div>
       </div>
     );
   }
+
   return (
     <div className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -175,7 +196,6 @@ export default function OrganizerProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {[
                   { field: 'name', label: 'Organization Name', required: true },
-                  { field: 'email', label: 'Email', required: true },
                   { field: 'phone', label: 'Phone', required: true },
                   { field: 'website', label: 'Website' },
                   { field: 'logo', label: 'Logo URL' },
@@ -188,8 +208,8 @@ export default function OrganizerProfilePage() {
                     </label>
                     <input
                       name={field}
-                      type={field === 'email' ? 'email' : 'text'}
-                      defaultValue={formData[field] || ''}
+                      type={field === 'contact_email' ? 'email' : 'text'}
+                      value={formData[field] || ''}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                       onFocus={field === 'phone' ? handleInputFocus : undefined}
                       className={`w-full px-3 sm:px-4 py-1 sm:py-2 text-sm sm:text-base border ${errors[field] ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-500 focus:text-gray-800 transition-colors`}
@@ -202,7 +222,7 @@ export default function OrganizerProfilePage() {
                   <label className="block text-sm font-medium text-gray-700">Description</label>
                   <textarea
                     name="description"
-                    defaultValue={formData.description || ''}
+                    value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows="4"
                     className={`w-full px-3 sm:px-4 py-1 sm:py-2 text-sm sm:text-base border ${errors.description ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-500 focus:text-gray-800 transition-colors`}
@@ -244,23 +264,23 @@ export default function OrganizerProfilePage() {
           ) : (
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                {organizer?.logo ? (
-        <img 
-          src={organizer.logo} 
-          alt={organizer.name || 'Organizer logo'}
-          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/default-avatar.png';
-          }}
-        />
-      ) : (
-        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
-          <span className="text-xl sm:text-2xl font-bold text-amber-600">
-            {organizer?.name?.charAt(0) || 'O'}
-          </span>
-        </div>
-      )}
+                {organizer.logo ? (
+                  <img 
+                    src={organizer.logo} 
+                    alt={organizer.name}
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/default-avatar.png';
+                    }}
+                  />
+                ) : (
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <span className="text-xl sm:text-2xl font-bold text-amber-600">
+                      {organizer.name?.charAt(0) || 'O'}
+                    </span>
+                  </div>
+                )}
                 <div className="flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-800">{organizer.name}</h2>
                   {organizer.speciality && (
@@ -282,8 +302,8 @@ export default function OrganizerProfilePage() {
                     </div>
                     <div>
                       <h3 className="text-xs sm:text-sm font-medium text-gray-500">Email</h3>
-                      <a href={`mailto:${organizer.email}`} className="text-sm sm:text-base text-gray-800 hover:text-amber-600 hover:underline">
-                        {organizer.email}
+                      <a href={`mailto:${organizer.contact_email || organizer.email}`} className="text-sm sm:text-base text-gray-800 hover:text-amber-600 hover:underline">
+                        {organizer.contact_email || organizer.email}
                       </a>
                     </div>
                   </div>
@@ -304,46 +324,26 @@ export default function OrganizerProfilePage() {
                 </div>
 
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="p-1 sm:p-2 bg-amber-100 rounded-lg text-amber-600">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500">Website</h3>
-                      {organizer.website ? (
-                        <a 
-                          href={organizer.website} 
-                          target="_blank" 
+                  {organizer.website && (
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="p-1 sm:p-2 bg-amber-100 rounded-lg text-amber-600">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-medium text-gray-500">Website</h3>
+                        <a
+                          href={organizer.website}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm sm:text-base text-gray-800 hover:text-amber-600 hover:underline"
                         >
                           {organizer.website.replace(/^https?:\/\//, '')}
                         </a>
-                      ) : (
-                        <span className="text-xs sm:text-sm text-gray-400">Not provided</span>
-                      )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="p-1 sm:p-2 bg-amber-100 rounded-lg text-amber-600">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500">Contact Email</h3>
-                      {organizer.contact_email ? (
-                        <a href={`mailto:${organizer.contact_email}`} className="text-sm sm:text-base text-gray-800 hover:text-amber-600 hover:underline">
-                          {organizer.contact_email}
-                        </a>
-                      ) : (
-                        <span className="text-xs sm:text-sm text-gray-400">Not provided</span>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
