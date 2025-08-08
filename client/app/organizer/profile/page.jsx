@@ -12,37 +12,45 @@ export default function OrganizerProfilePage() {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const router = useRouter();
 
-useEffect(() => {
-  const fetchOrganizer = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
 
-    try {
-      const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        const res = await axios.get('https://servertikiti-production.up.railway.app/organizer/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      setOrganizer(res.data);
-      setFormData(res.data);
-    } catch (err) {
-      console.error('Failed to fetch organizer profile', err);
-      toast.error('Failed to load profile');
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        if (res.data) {
+          setOrganizer(res.data);
+          setFormData(res.data);
+        } else {
+          throw new Error('No data received');
+        }
+      } catch (err) {
+        console.error('Failed to fetch organizer profile', err);
+        toast.error(err.response?.data?.error || 'Failed to load profile');
+        setFetchError(true);
+        if (err.response?.status === 401) {
+          localStorage.removeItem('authToken');
+          router.push('/login');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  fetchOrganizer();
-}, []);
-
+    fetchOrganizer();
+  }, [router]);
 
   const validate = () => {
     const newErrors = {};
@@ -59,46 +67,54 @@ useEffect(() => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleLogout = async () => {
-  try {
-    localStorage.removeItem('authToken'); // Clear the JWT
-    toast.success('Logged out successfully');
-    router.push('/');
-  } catch (err) {
-    toast.error('Logout failed');
-  }
-};
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('authToken');
+      toast.success('Logged out successfully');
+      router.push('/');
+    } catch (err) {
+      toast.error('Logout failed');
+    }
+  };
 
+  const handleSave = async () => {
+    if (!validate()) return;
 
-const handleSave = async () => {
-  if (!validate()) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
 
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    router.push('/login');
-    return;
-  }
-
-  try {
-    setIsLoading(true);
-    const res = await axios.patch('https://servertikiti-production.up.railway.app/organizer/profile', formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    setOrganizer(res.data);
-    setEditMode(false);
-    toast.success('Profile updated successfully');
-  } catch (err) {
-    console.error('Update failed', err);
-    toast.error('Failed to update profile');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setIsLoading(true);
+      const res = await axios.patch(
+        'https://servertikiti-production.up.railway.app/organizer/profile', 
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setOrganizer(res.data);
+      setEditMode(false);
+      toast.success('Profile updated successfully');
+    } catch (err) {
+      console.error('Update failed', err);
+      toast.error(err.response?.data?.error || 'Failed to update profile');
+      if (err.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        router.push('/login');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputFocus = (e) => {
-    if (e.target.name === 'phone' && e.target.value === organizer.phone) {
+    if (organizer && e.target.name === 'phone' && e.target.value === organizer.phone) {
       e.target.value = '';
     }
   };
@@ -111,6 +127,22 @@ const handleSave = async () => {
     );
   }
 
+  if (fetchError || !organizer) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 mb-4">We couldn't load your organizer profile.</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -212,17 +244,23 @@ const handleSave = async () => {
           ) : (
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                {organizer.logo ? (
-                  <img 
-                    src={organizer.logo} 
-                    alt={organizer.name}
-                    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <span className="text-xl sm:text-2xl font-bold text-amber-600">{organizer.name.charAt(0)}</span>
-                  </div>
-                )}
+                {organizer?.logo ? (
+        <img 
+          src={organizer.logo} 
+          alt={organizer.name || 'Organizer logo'}
+          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/default-avatar.png';
+          }}
+        />
+      ) : (
+        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
+          <span className="text-xl sm:text-2xl font-bold text-amber-600">
+            {organizer?.name?.charAt(0) || 'O'}
+          </span>
+        </div>
+      )}
                 <div className="flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-800">{organizer.name}</h2>
                   {organizer.speciality && (
