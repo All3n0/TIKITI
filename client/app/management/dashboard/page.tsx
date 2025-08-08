@@ -73,9 +73,10 @@ useEffect(() => {
       ]);
 
       // Check if any response failed
-      if (!statsRes.ok || !eventsRes.ok || !venuesRes.ok || !orgsRes.ok) {
-        throw new Error('Failed to fetch dashboard data');
-      }
+      if (!statsRes.ok) throw new Error('Failed to fetch stats data');
+      if (!eventsRes.ok) throw new Error('Failed to fetch pending events');
+      if (!venuesRes.ok) throw new Error('Failed to fetch pending venues');
+      if (!orgsRes.ok) throw new Error('Failed to fetch organizers');
 
       const [statsData, eventsData, venuesData, orgsData] = await Promise.all([
         statsRes.json(),
@@ -99,7 +100,7 @@ useEffect(() => {
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      throw error; // Re-throw to be caught by the outer catch
+      throw error;
     }
   };
 
@@ -144,19 +145,30 @@ useEffect(() => {
   fetchData();
 }, [router]);
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('managementToken');
     await fetch('https://servertikiti-production.up.railway.app/management/logout', {
       method: 'DELETE',
-      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     });
+    localStorage.removeItem('managementToken');
     router.push('/management/login');
-  };
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+};
+
 const handleApprove = async (id: any) => {
   try {
+    const token = localStorage.getItem('managementToken');
     const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/approve`, {
       method: 'PATCH',
-      credentials: 'include',
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
@@ -165,7 +177,6 @@ const handleApprove = async (id: any) => {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    const data = await res.json();
     setPendingVenues(prev => prev.filter(v => v.id !== id));
     setStats(prev => ({
       ...prev,
@@ -173,17 +184,17 @@ const handleApprove = async (id: any) => {
     }));
   } catch (err) {
     console.error('Error approving venue:', err);
-    // Show error to user
     alert('Failed to approve venue. Please try again.');
   }
 };
 
 const handleReject = async (id: any) => {
   try {
+    const token = localStorage.getItem('managementToken');
     const res = await fetch(`https://servertikiti-production.up.railway.app/management/venues/${id}/reject`, {
       method: 'PATCH',
-      credentials: 'include',
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
@@ -192,7 +203,6 @@ const handleReject = async (id: any) => {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    const data = await res.json();
     setPendingVenues(prev => prev.filter(v => v.id !== id));
     setStats(prev => ({
       ...prev,
@@ -200,65 +210,107 @@ const handleReject = async (id: any) => {
     }));
   } catch (err) {
     console.error('Error rejecting venue:', err);
-    // Show error to user
     alert('Failed to reject venue. Please try again.');
   }
 };
-  const handleApproveEvent = async (eventId: any) => {
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      if (res.ok) {
-        // Refresh data
-        const eventsRes = await fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
-          credentials: 'include',
-        });
-        const eventsData = await eventsRes.json();
-        setPendingEvents(eventsData);
-        
-        // Refresh stats
-        const statsRes = await fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
-          credentials: 'include',
-        });
-        const statsData = await statsRes.json();
-        setStats(statsData);
+
+const handleApproveEvent = async (eventId: any) => {
+  try {
+    const token = localStorage.getItem('managementToken');
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    });
+    
+    if (!res.ok) throw new Error('Failed to approve event');
+    
+    // Refresh data
+    const [eventsRes, statsRes] = await Promise.all([
+      fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }),
+      fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    ]);
 
+    if (!eventsRes.ok || !statsRes.ok) throw new Error('Failed to refresh data');
 
-  const handleRejectEvent = async (eventId: any) => {
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      if (res.ok) {
-        // Refresh data
-        const eventsRes = await fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
-          credentials: 'include',
-        });
-        const eventsData = await eventsRes.json();
-        setPendingEvents(eventsData);
-        
-        // Refresh stats
-        const statsRes = await fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
-          credentials: 'include',
-        });
-        const statsData = await statsRes.json();
-        setStats(statsData);
+    const [eventsData, statsData] = await Promise.all([
+      eventsRes.json(),
+      statsRes.json()
+    ]);
+
+    setPendingEvents(eventsData);
+    setStats({
+      activeEvents: statsData.active_events,
+      pendingEvents: statsData.pending_events,
+      totalOrganizers: statsData.total_organizers,
+      pendingVenues: statsData.pending_venues || 0 // Fallback in case this isn't returned
+    });
+  } catch (err) {
+    console.error('Error approving event:', err);
+    alert('Failed to approve event. Please try again.');
+  }
+};
+
+const handleRejectEvent = async (eventId: any) => {
+  try {
+    const token = localStorage.getItem('managementToken');
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    });
+    
+    if (!res.ok) throw new Error('Failed to reject event');
+    
+    // Refresh data
+    const [eventsRes, statsRes] = await Promise.all([
+      fetch('https://servertikiti-production.up.railway.app/management/events/pending', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }),
+      fetch('https://servertikiti-production.up.railway.app/management/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    ]);
 
+    if (!eventsRes.ok || !statsRes.ok) throw new Error('Failed to refresh data');
+
+    const [eventsData, statsData] = await Promise.all([
+      eventsRes.json(),
+      statsRes.json()
+    ]);
+
+    setPendingEvents(eventsData);
+    setStats({
+      activeEvents: statsData.active_events,
+      pendingEvents: statsData.pending_events,
+      totalOrganizers: statsData.total_organizers,
+      pendingVenues: statsData.pending_venues || 0 // Fallback in case this isn't returned
+    });
+  } catch (err) {
+    console.error('Error rejecting event:', err);
+    alert('Failed to reject event. Please try again.');
+  }
+};
   if (loading) return <div className="text-center py-20 text-gray-600">Loading...</div>;
 
   return (

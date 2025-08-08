@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
 
 interface RegisterResponse {
-  access_token: string;  // Changed from 'token' to 'access_token'
+  token: string;
   manager: {
     id: number;
     email: string;
@@ -27,31 +27,17 @@ export default function ManagementRegisterPage() {
     try {
       const { data } = await axios.post<RegisterResponse>(
         'https://servertikiti-production.up.railway.app/management/register',
-        { email, username, password },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        { email, username, password }
       );
 
-      if (data.access_token) {
-        // Store the token in localStorage
-        localStorage.setItem('managementToken', data.access_token);
-        
-        // Set default axios headers for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
-        
+      if (data.token) {
+        localStorage.setItem('managementToken', data.token);
         router.push('/management/dashboard');
       }
     } catch (err) {
       const error = err as AxiosError<{ error?: string }>;
       setError(error.response?.data?.error || 'Registration failed');
       console.error('Registration error:', error);
-      
-      // Clear token on error
-      localStorage.removeItem('managementToken');
-      delete axios.defaults.headers.common['Authorization'];
     }
   };
 
