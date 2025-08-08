@@ -1,37 +1,74 @@
-const checkSession = async () => {
-  try {
-    const token = localStorage.getItem('authToken'); // Get token from storage
+'use client';
 
-    if (!token) {
-      console.warn('No token found');
-      setSessionChecked(true);
-      return;
-    }
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { LogOut, Edit, ArrowLeft, Check, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
-    const res = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+export default function OrganizerProfilePage() {
+  const [organizer, setOrganizer] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+  const router = useRouter();
 
-    if (!res.ok) {
-      throw new Error('Invalid or expired token');
-    }
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
 
-    const data = await res.json();
-    console.log('Session user:', data);
+      try {
+        // ✅ Get session first
+        const sessionRes = await axios.get(
+          'https://servertikiti-production.up.railway.app/auth/session',
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-    // ✅ Store user in state
-    setSessionUser(data.user);
-  } catch (err) {
-    console.warn('Session check failed', err);
-    // Optional: localStorage.removeItem('token'); // if token is invalid
-  } finally {
-    setSessionChecked(true);
-  }
-};
+        const { user } = sessionRes.data;
+        if (!user) {
+          toast.error('Invalid session, please login again');
+          localStorage.removeItem('authToken');
+          router.push('/login');
+          return;
+        }
+
+        // ✅ Fetch organizer profile with the user.id (backend expects user_id)
+        const profileRes = await axios.get(
+          `https://servertikiti-production.up.railway.app/organizers/${user.id}/profile`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setOrganizer(profileRes.data);
+        setFormData(profileRes.data);
+
+      } catch (err) {
+        console.error('Profile fetch error:', err.response?.data || err.message);
+        setFetchError(true);
+
+        if (err.response?.status === 403) {
+          toast.error('Unauthorized to view this profile');
+          router.push('/organizer/dashboard');
+        } else if (err.response?.status === 401) {
+          toast.error('Session expired, please login again');
+          localStorage.removeItem('authToken');
+          router.push('/login');
+        } else {
+          toast.error(err.response?.data?.error || 'Failed to load profile');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrganizer();
+  }, [router]);
+
   const validate = () => {
     const newErrors = {};
     if (!formData.name || formData.name.trim().length < 2) {
@@ -308,3 +345,4 @@ const checkSession = async () => {
       </div>
     </div>
   );
+}
