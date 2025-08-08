@@ -10,90 +10,152 @@ export default function EventDetailsPage({ params }) {
   const [ticketSummary, setTicketSummary] = useState(null);
   const router = useRouter();
   const eventId = params.id;
-
-  useEffect(() => {
-    const fetchTicketSummary = async () => {
-      try {
-        const res = await fetch(`https://servertikiti-production.up.railway.app/events/${eventId}/tickets-summary`);
-        if (res.ok) {
-          const data = await res.json();
-          setTicketSummary(data);
+useEffect(() => {
+  const fetchTicketSummary = async () => {
+    try {
+      const token = localStorage.getItem('managementToken');
+      const res = await fetch(`https://servertikiti-production.up.railway.app/events/${eventId}/tickets-summary`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } catch (err) {
-        console.error("Error fetching ticket summary:", err);
-      }
-    };
-    fetchTicketSummary();
-
-    const fetchEvent = async () => {
-      try {
-        const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          router.push("/management/login");
-          return;
-        }
-
+      });
+      if (res.ok) {
         const data = await res.json();
-        setEvent(data);
-      } catch (err) {
-        console.error(err);
+        setTicketSummary(data);
+      } else if (res.status === 401) {
         router.push("/management/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvent();
-  }, [eventId, router]);
-
-  const handleApprove = async () => {
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        router.refresh();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching ticket summary:", err);
     }
   };
 
-  const handleReject = async () => {
+  const fetchEvent = async () => {
     try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
-        method: "POST",
-        credentials: "include",
+      const token = localStorage.getItem('managementToken');
+      if (!token) {
+        router.push("/management/login");
+        return;
+      }
+
+      const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (res.ok) {
-        router.refresh();
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('managementToken');
+        }
+        router.push("/management/login");
+        return;
       }
+
+      const data = await res.json();
+      setEvent(data);
     } catch (err) {
       console.error(err);
+      localStorage.removeItem('managementToken');
+      router.push("/management/login");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchOrganizerDetails = async (organizerId) => {
-    try {
-      const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
-        credentials: "include",
-      });
+  fetchTicketSummary();
+  fetchEvent();
+}, [eventId, router]);
 
-      if (res.ok) {
-        const data = await res.json();
-        setOrganizerDetails(data);
-        setShowOrganizerModal(true);
-      }
-    } catch (err) {
-      console.error(err);
+const handleApprove = async () => {
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push("/management/login");
+      return;
     }
-  };
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/approve`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      router.refresh();
+    } else if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push("/management/login");
+    }
+  } catch (err) {
+    console.error(err);
+    localStorage.removeItem('managementToken');
+    router.push("/management/login");
+  }
+};
+
+const handleReject = async () => {
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push("/management/login");
+      return;
+    }
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/events/${eventId}/reject`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      router.refresh();
+    } else if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push("/management/login");
+    }
+  } catch (err) {
+    console.error(err);
+    localStorage.removeItem('managementToken');
+    router.push("/management/login");
+  }
+};
+
+const fetchOrganizerDetails = async (organizerId) => {
+  try {
+    const token = localStorage.getItem('managementToken');
+    if (!token) {
+      router.push("/management/login");
+      return;
+    }
+
+    const res = await fetch(`https://servertikiti-production.up.railway.app/management/organizers/${organizerId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setOrganizerDetails(data);
+      setShowOrganizerModal(true);
+    } else if (res.status === 401) {
+      localStorage.removeItem('managementToken');
+      router.push("/management/login");
+    }
+  } catch (err) {
+    console.error(err);
+    localStorage.removeItem('managementToken');
+    router.push("/management/login");
+  }
+};
 
   if (loading) return <div className="text-center py-20">Loading event details...</div>;
   if (!event) return <div className="text-center py-20">Event not found</div>;
