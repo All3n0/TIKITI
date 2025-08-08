@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { LogOut, Edit, ArrowLeft, Check, X } from 'lucide-react';
@@ -8,15 +6,16 @@ import toast from 'react-hot-toast';
 
 export default function OrganizerProfilePage() {
   const [organizer, setOrganizer] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(false);
   const router = useRouter();
 
+  // Fetch organizer data
   useEffect(() => {
-    const fetchOrganizer = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem('authToken');
       if (!token) {
         router.push('/login');
@@ -24,21 +23,29 @@ export default function OrganizerProfilePage() {
       }
 
       try {
-        // ✅ Get session first
+        setIsLoading(true);
+        
+        // First get the user session to verify role and get user ID
         const sessionRes = await axios.get(
           'https://servertikiti-production.up.railway.app/auth/session',
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const { user } = sessionRes.data;
-        if (!user) {
-          toast.error('Invalid session, please login again');
-          localStorage.removeItem('authToken');
-          router.push('/login');
+        if (!sessionRes.data?.user) {
+          throw new Error('Invalid session');
+        }
+
+        const user = sessionRes.data.user;
+        setUserData(user);
+
+        // Verify this is an organizer
+        if (user.role !== 'organizer') {
+          toast.error('Only organizers can access this page');
+          router.push('/profile');
           return;
         }
 
-        // ✅ Fetch organizer profile with the user.id (backend expects user_id)
+        // Then fetch the organizer profile
         const profileRes = await axios.get(
           `https://servertikiti-production.up.railway.app/organizers/${user.id}/profile`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -46,52 +53,69 @@ export default function OrganizerProfilePage() {
 
         setOrganizer(profileRes.data);
         setFormData(profileRes.data);
-
       } catch (err) {
-        console.error('Profile fetch error:', err.response?.data || err.message);
-        setFetchError(true);
-
-        if (err.response?.status === 403) {
-          toast.error('Unauthorized to view this profile');
-          router.push('/organizer/dashboard');
-        } else if (err.response?.status === 401) {
+        console.error('Fetch error:', err);
+        
+        if (err.response?.status === 401) {
           toast.error('Session expired, please login again');
           localStorage.removeItem('authToken');
           router.push('/login');
+        } else if (err.response?.status === 403) {
+          toast.error('You are not authorized to view this page');
+          router.push('/profile');
         } else {
-          toast.error(err.response?.data?.error || 'Failed to load profile');
+          toast.error(err.response?.data?.error || 'Failed to load organizer profile');
         }
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchOrganizer();
+    fetchData();
   }, [router]);
 
-  const validate = () => {
+  const validateForm = () => {
     const newErrors = {};
+    
     if (!formData.name || formData.name.trim().length < 2) {
       newErrors.name = 'Organization name must be at least 2 characters';
     }
-    if (formData.contact_email && !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$/.test(formData.contact_email)) {
-      newErrors.contact_email = 'Enter a valid email';
+    
+    if (formData.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
+      newErrors.contact_email = 'Please enter a valid email';
     }
+    
     if (!formData.phone || !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Enter a valid phone number (at least 10 digits)';
+      newErrors.phone = 'Please enter a valid phone number';
     }
+    
+    if (formData.website && !/^https?:\/\/.+\..+/.test(formData.website)) {
+      newErrors.website = 'Please enter a valid URL (include http:// or https://)';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    toast.success('Logged out successfully');
-    router.push('/');
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSave = async () => {
-    if (!validate()) return;
+    if (!validateForm()) return;
 
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -101,46 +125,58 @@ export default function OrganizerProfilePage() {
 
     try {
       setIsLoading(true);
-      const res = await axios.patch(
+      
+      const response = await axios.patch(
         'https://servertikiti-production.up.railway.app/organizer/profile',
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
 
-      setOrganizer(res.data);
+      setOrganizer(response.data);
       setEditMode(false);
       toast.success('Profile updated successfully');
     } catch (err) {
+      console.error('Update error:', err);
       toast.error(err.response?.data?.error || 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    toast.success('Logged out successfully');
+    router.push('/');
+  };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
       </div>
     );
   }
 
-  if (fetchError || !organizer) {
+  if (!organizer) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
-          <p className="text-gray-600 mb-4">We couldn't load your organizer profile.</p>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-6 max-w-md">
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Organizer Profile Not Found</h2>
+          <p className="text-gray-600 mb-4">
+            {userData?.role === 'organizer' 
+              ? "We couldn't load your organizer profile." 
+              : "You need to be an organizer to access this page."}
+          </p>
           <button
-            onClick={() => router.push('/organizer/dashboard')}
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            onClick={() => router.push(userData?.role === 'organizer' ? '/organizer/dashboard' : '/profile')}
+            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
           >
-            Go to Dashboard
+            Go to {userData?.role === 'organizer' ? 'Dashboard' : 'Profile'}
           </button>
         </div>
       </div>
