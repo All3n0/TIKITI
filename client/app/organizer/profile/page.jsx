@@ -210,8 +210,7 @@ if (isLoading) {
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 {organizer.logo ? (
                   <img 
-                    src={organizer.logo} 
-                    alt={organizer.name}
+                   src={organizer?.logo || '/placeholder.png'} alt="Organizer Logo"
                     className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
                   />
                 ) : (
