@@ -19,6 +19,7 @@ export default function OrganizerProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('authToken');
+      console.log('Fetching organizer profile with token:', token);
       if (!token) {
         router.push('/login');
         return;
@@ -34,6 +35,7 @@ export default function OrganizerProfilePage() {
         );
 
         const session = sessionRes.data?.user;
+        console.log('Session data:', session);
         if (!session) {
           throw new Error('Invalid session');
         }
@@ -42,7 +44,7 @@ export default function OrganizerProfilePage() {
         console.log('User session:', session);
         // Verify organizer role
         if (session.role !== 'organizer') {
-          toast.error('Only organizers can access this page');
+          console.log('Only organizers can access this page');
           router.push('/profile');
           return;
         }
@@ -52,7 +54,7 @@ export default function OrganizerProfilePage() {
           `https://servertikiti-production.up.railway.app/organizers/${session.id}/profile`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
+        console.log('Organizer profile data:', profileRes.data);
         setOrganizer(profileRes.data);
         setFormData(profileRes.data);
       } catch (err) {
