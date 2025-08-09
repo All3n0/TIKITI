@@ -18,18 +18,34 @@ useEffect(() => {
   const fetchOrganizer = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      console.log(token); // get JWT
       if (!token) {
         router.push('/login');
         return;
       }
 
-      const res = await axios.get('http://localhost:5557/organizer/profile', {
+      // Step 1: Get session to obtain user id & role
+      const sessionRes = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log(res.data); // get organizer profile
-      setOrganizer(res.data);
-      setFormData(res.data);
+      if (!sessionRes.ok) throw new Error('Session fetch failed');
+
+      const { user } = await sessionRes.json();
+
+      if (!user || user.role !== 'organizer') {
+        router.push('/login');
+        return;
+      }
+
+      // Step 2: Use user.id to fetch organizer profile
+      const profileRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!profileRes.ok) throw new Error('Profile fetch failed');
+
+      const organizerData = await profileRes.json();
+
+      setOrganizer(organizerData);
+      setFormData(organizerData);
     } catch (err) {
       console.error('Failed to fetch organizer profile', err);
       toast.error('Failed to load profile');
