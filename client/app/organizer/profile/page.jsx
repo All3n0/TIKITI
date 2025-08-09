@@ -17,7 +17,8 @@ export default function OrganizerProfilePage() {
 useEffect(() => {
   const fetchOrganizer = async () => {
     try {
-      const token = localStorage.getItem('authToken'); // get JWT
+      const token = localStorage.getItem('authToken');
+      console.log(token); // get JWT
       if (!token) {
         router.push('/login');
         return;
@@ -26,7 +27,7 @@ useEffect(() => {
       const res = await axios.get('http://localhost:5557/organizer/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
-
+      console.log(res.data); // get organizer profile
       setOrganizer(res.data);
       setFormData(res.data);
     } catch (err) {
@@ -208,16 +209,18 @@ if (isLoading) {
           ) : (
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                {organizer.logo ? (
-                  <img 
-                   src={organizer?.logo || '/placeholder.png'} alt="Organizer Logo"
-                    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <span className="text-xl sm:text-2xl font-bold text-amber-600">{organizer.name.charAt(0)}</span>
-                  </div>
-                )}
+                {organizer && organizer.logo ? (
+  <img 
+    src={organizer.logo} 
+    alt="Organizer Logo"
+    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border border-gray-200"
+  />
+) : organizer ? (
+  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-lg flex items-center justify-center">
+    <span className="text-xl sm:text-2xl font-bold text-amber-600">{organizer.name.charAt(0)}</span>
+  </div>
+) : null}
+
                 <div className="flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-gray-800">{organizer.name}</h2>
                   {organizer.speciality && (
