@@ -39,7 +39,7 @@ export default function OrganizerProfilePage() {
         }
 
         setUserSession(session);
-
+        console.log('User session:', session);
         // Verify organizer role
         if (session.role !== 'organizer') {
           toast.error('Only organizers can access this page');
