@@ -106,7 +106,7 @@ const handleSave = async () => {
       return;
     }
 
-    const res = await axios.patch('http://localhost:5557/organizer/profile', formData, {
+    const res = await axios.patch('https://servertikiti-production.up.railway.app/organizer/profile', formData, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
