@@ -18,36 +18,49 @@ useEffect(() => {
   const fetchOrganizer = async () => {
     try {
       const token = localStorage.getItem('authToken');
+      console.log("[DEBUG] Auth token:", token);
       if (!token) {
+        console.log("[DEBUG] No token found, redirecting to login");
         router.push('/login');
         return;
       }
 
-      // Step 1: Get session to obtain user id & role
+      // Step 1: Get session
       const sessionRes = await fetch('https://servertikiti-production.up.railway.app/auth/session', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!sessionRes.ok) throw new Error('Session fetch failed');
+      console.log("[DEBUG] Session response status:", sessionRes.status);
+      if (!sessionRes.ok) {
+        console.error("[DEBUG] Session fetch failed");
+        throw new Error('Session fetch failed');
+      }
 
       const { user } = await sessionRes.json();
+      console.log("[DEBUG] Session user data:", user);
 
       if (!user || user.role !== 'organizer') {
+        console.log("[DEBUG] User role invalid or missing, redirecting to login");
         router.push('/login');
         return;
       }
 
-      // Step 2: Use user.id to fetch organizer profile
-      const profileRes = await fetch(`https://servertikiti-production.up.railway.app/organiser/${user.id}/profile`, {
+      // Step 2: Fetch organizer profile using user id
+      const profileRes = await fetch(`https://servertikiti-production.up.railway.app/organizer/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!profileRes.ok) throw new Error('Profile fetch failed');
+      console.log("[DEBUG] Profile response status:", profileRes.status);
+      if (!profileRes.ok) {
+        console.error("[DEBUG] Profile fetch failed");
+        throw new Error('Profile fetch failed');
+      }
 
       const organizerData = await profileRes.json();
+      console.log("[DEBUG] Organizer profile data:", organizerData);
 
       setOrganizer(organizerData);
       setFormData(organizerData);
     } catch (err) {
-      console.error('Failed to fetch organizer profile', err);
+      console.error('[DEBUG] Failed to fetch organizer profile:', err);
       toast.error('Failed to load profile');
       router.push('/login');
     } finally {
@@ -57,7 +70,6 @@ useEffect(() => {
 
   fetchOrganizer();
 }, []);
-
 const validate = () => {
   const newErrors = {};
   if (!formData.email || !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,}$/.test(formData.email)) {
