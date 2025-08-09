@@ -51,7 +51,7 @@ export default function OrganizerProfilePage() {
 
         // Fetch organizer profile
         const profileRes = await axios.get(
-          `https://servertikiti-production.up.railway.app/organizers/profile`,
+          `https://servertikiti-production.up.railway.app/organizers/user/${session.id}/profile`,
           { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
         );
         console.log('Organizer profile data:', profileRes.data);
